@@ -1,0 +1,68 @@
+#girisKutu,#sonKat{background:#80cdba url(menu.webp) center/cover no-repeat}
+.intro{position:absolute;left:5%;width:43%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#183d44;text-align:center}
+.collection{font:800 clamp(11px,2vmin,18px)/1.25 system-ui;letter-spacing:.19em;background:#fff3cb;padding:.5em 1em;border-radius:1em}
+.intro h1{font:900 clamp(42px,14vmin,118px)/.85 'Patrick Hand',Georgia,serif;letter-spacing:-.045em;color:#18464a;margin:2.8vmin 0 3.5vmin;transform:rotate(-3deg);text-shadow:0 .035em #fff3d5, .025em .045em #fff3d5}
+.intro h1 em{font-size:.72em;font-style:normal}
+.shell,#tekrarDugme.shell{font:900 clamp(19px,4.4vmin,38px)/1 'Patrick Hand',sans-serif;background:transparent url(play-plaque.webp) center/100% 100% no-repeat;color:#391d23;border:0;box-shadow:none;width:clamp(130px,31vmin,280px);height:clamp(48px,10.5vmin,94px);padding:0;cursor:pointer}
+.guide{font:700 clamp(15px,2.5vmin,22px)/1.4 'Patrick Hand',sans-serif;border:1px solid #477e73;background:#fffae2;color:#1c4845;border-radius:999px;padding:.3em 1.4em;margin:.6em}
+.intro small{font:bold clamp(12px,2vmin,18px) system-ui;color:#143c40;background:#fff3d8dd;padding:.25em .7em;border-radius:1em}
+dialog{position:fixed;inset:0;margin:auto;border:4px solid #29685d;border-radius:25px;background:#fff1d4;color:#17483f;padding:2vmin 4vmin;text-align:center;width:min(70vw,540px);max-height:92vh;overflow:auto;font:clamp(15px,3vmin,23px)/1.22 'Patrick Hand',sans-serif}dialog p{margin:.5em}dialog h2{margin:.25em}dialog::backdrop{background:#102e36a8}
+#eventHint{position:absolute;left:50%;top:2%;transform:translateX(-50%);display:flex;align-items:center;background:#fff4d9;color:#264742;border:2px solid #407764;border-radius:99px;padding:.3vmin 1.8vmin .3vmin .5vmin;gap:.8vmin;z-index:32;max-width:49%;font:bold clamp(13px,2.9vmin,24px)/1.05 'Patrick Hand',sans-serif;pointer-events:none}
+#eventHint img{width:7vmin;height:7vmin;object-fit:contain}#eventHint[hidden]{display:none}
+#sonKat .kart{background:#fff4dceb;border:3px solid #598278;color:#224b43}
+#friendStage{position:absolute;inset:0;z-index:19;pointer-events:none}
+#swimmer,#friendFood,#wake{position:absolute;transform:translate(-50%,-50%);object-fit:contain}
+#friendFood{width:12vmin;height:12vmin;filter:drop-shadow(0 0 .65vmin #fff5a8)}
+#wake{border-bottom:.9vmin dotted #fff2bd;filter:drop-shadow(0 1px 2px #375f58)}
+#friendMeter{width:7vmin;height:1.4vmin;accent-color:#298a69}
+.shell,#tekrarDugme.shell{background-image:url(play-plaque.webp);color:#243f37;width:clamp(146px,34vmin,290px);height:clamp(50px,12vmin,102px)}
+.guide{background:transparent url(secondary-plaque.webp) center/100% 100% no-repeat;border:0;box-shadow:none;color:#173f41;padding:.55em 1.7em}
+#sesDugme,#tamDugme,#nefesGeri{background:transparent url(pebble.webp) center/contain no-repeat;color:#163c41;box-shadow:none;border:0}
+button:focus-visible{outline:3px solid #1a5860;outline-offset:2px}
+#sonKat .kart{width:min(72vmin,410px);box-sizing:border-box;max-height:96%;gap:1.25vmin;justify-content:center}
+#sonKat #tekrarDugme,#sonKat #menu,.intro #play,.intro #guide{display:grid;place-items:center;box-sizing:border-box;margin:0;padding:0 11%;width:clamp(136px,36vmin,270px);height:clamp(42px,10.6vmin,78px);font:700 clamp(17px,4vmin,31px)/1 'Patrick Hand',sans-serif;background-size:100% 100%;white-space:nowrap;border:none;box-shadow:none}
+.intro #guide{margin:.6vmin 0}.intro #play,.intro #guide{padding:0}
+#waterFX{position:absolute;inset:0;overflow:hidden;z-index:22;pointer-events:none}
+#waterFX i{display:block;position:absolute;box-sizing:border-box;will-change:transform,opacity}
+.ripple{border:1.5px solid currentColor;border-radius:50%}.glint{background:currentColor;clip-path:polygon(50% 0,64% 37%,100% 50%,64% 63%,50% 100%,36% 63%,0 50%,36% 37%)}
+.obje.altinB img{object-fit:contain;animation:starFloat 1.65s ease-in-out infinite alternate;filter:drop-shadow(0 0 .8vmin #fff2a6)}
+@keyframes starFloat{from{transform:rotate(-9deg) scale(.95)}to{transform:rotate(9deg) scale(1.07)}}
+.obje.toplandi.altinB img{animation:altinPop .46s ease-out forwards}
+#ustSag button{display:block;width:clamp(40px,8.8vmin,64px);height:clamp(40px,8.8vmin,64px);font-size:0;padding:0;background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 2px 2px #143b4550)}
+#sesDugme{background-image:url(art/sound.webp)}#sesDugme[data-muted=true]{background-image:url(art/mute.webp)}#tamDugme{background-image:url(art/fullscreen.webp)}#tamDugme[data-expanded=true]{background-image:url(art/exit-fullscreen.webp)}
+#friendFood,#wake{display:none}
+@media(prefers-reduced-motion:reduce){.obje.altinB img{animation:none}}
+#coast{position:absolute;inset:0 auto 0 0;width:300%;display:flex;will-change:transform}
+#coast>div,#coast i{background-size:100% 100%;background-position:center}
+#coast>div{position:relative;width:33.333333%;height:100%;flex:none}
+#coast i{position:absolute;inset:0}
+#nearBank{position:absolute;inset:auto 0 0;height:16%;background:url(art/foreground.webp) left bottom/auto 100% repeat-x;pointer-events:none;opacity:.88}
+#ustSol{align-items:flex-start}
+#sahne .skorKutu{box-sizing:border-box;display:grid;place-items:center;gap:0;min-width:13vmin;padding:.45vmin 2.1vmin .7vmin;border:2px solid #ffdf87;background:#174a4a;color:#fff7cf;border-radius:2.5vmin;box-shadow:0 .6vmin 0 #10373580}
+#skorYazi{font:900 clamp(24px,6.2vmin,54px)/1 system-ui;font-variant-numeric:tabular-nums}
+.skorKutu small{font:800 clamp(9px,1.5vmin,14px)/1.2 system-ui;letter-spacing:.13em;color:#ffd880}
+#routeTag{position:absolute;bottom:max(2%,env(safe-area-inset-bottom));left:2%;border-radius:2em;padding:.35em .9em;background:#123e42d9;color:#fff4cf;font:650 clamp(12px,2.1vmin,17px)/1.4 system-ui;pointer-events:none;z-index:30}
+#cheers{pointer-events:none;position:absolute;z-index:38;top:16%;left:50%;translate:-50% 0;text-align:center;color:#fff5cc;filter:drop-shadow(0 2px 2px #173c48);white-space:nowrap}
+#cheers strong{display:block;font:900 clamp(25px,7.8vmin,67px)/1.15 system-ui;-webkit-text-stroke:.06em #19545a;paint-order:stroke fill}
+#cheers span{font:700 clamp(11px,2vmin,18px)/1.5 system-ui;background:#1e5156df;border-radius:2em;padding:.16em .8em}
+#sonRekor,#sonRekor.yeni{font-family:system-ui,sans-serif;font-weight:750;text-transform:none;letter-spacing:normal;line-height:1.4}
+#nearBank{background-size:75vw 100%}
+#sahne #canKutu{display:flex;gap:.28vmin;background:none;border:none;box-shadow:none;padding:.45vmin 0;align-self:center;color:#ff6a65;font:bold clamp(18px,4.5vmin,37px)/1 system-ui;text-shadow:0 1px 0 #853e44,0 0 3px #fff}
+#canKutu .spent{color:#314c50;opacity:.45}
+.skorKutu{position:relative}
+#sahne #komboYazi{top:100%;left:50%;margin:.6vmin 0;font:800 clamp(12px,2.4vmin,18px)/1 system-ui;background:#1b5555e8;color:#ffe69b;text-shadow:none;padding:.27em .6em;border-radius:1em}
+#waterFX .scorePearl{left:0;top:0;width:2.5vmin;height:2.5vmin;border-radius:50%;border:1.5px solid #f3ffeb;background:radial-gradient(circle at 28% 26%,white 0 11%,#88eddf 24%,#4ebcac 66%,#ffed9c);box-shadow:0 0 7px #afffe6}
+.obje.kok img{object-fit:fill;height:100%;width:100%}
+.obje.toplandi.kok img{animation:kestanePop .42s ease-out forwards}
+#coast>div,#coast i{background-size:cover}
+
+.tideStar{width:clamp(15px,4.5vmin,40px);aspect-ratio:1;background:url(art/tide-star.webp) center/contain no-repeat}
+#coast::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(177deg,#a5f6f21c,transparent 50%,#226b8526)}
+
+#swimmer{width:auto;height:calc(clamp(96px,24vmin,200px) * var(--painted-height,.65));max-width:none;filter:drop-shadow(0 .5vmin .4vmin #17474455)}
+#gateLight{position:absolute;width:5vmin;translate:-50% 0;border-block:2px solid #ffedaa;border-radius:35%;background:linear-gradient(90deg,transparent,#fff7be23,transparent);pointer-events:none}
+#gateLight::before,#gateLight::after{content:"";position:absolute;left:50%;width:1.5vmin;height:1.5vmin;translate:-50% -50%;rotate:45deg;background:#fff2b1;box-shadow:0 0 1vmin #ffdb78}
+#gateLight::after{top:100%}
+#pirpir.kalkanli::before{content:"";position:absolute;right:66%;top:38%;width:90%;height:27%;pointer-events:none;background:linear-gradient(90deg,transparent,#90fff888 70%,#e9ffdf);clip-path:polygon(0 18%,100% 32%,100% 83%,13% 100%,70% 65%,0 62%,59% 47%);opacity:.8}
+
+.publisher-logo{position:absolute;top:max(22px,env(safe-area-inset-top));right:max(24px,env(safe-area-inset-right));width:clamp(100px,17vmin,156px);height:auto;z-index:3;pointer-events:none}

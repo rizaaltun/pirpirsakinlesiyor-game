@@ -1,0 +1,3 @@
+/* The original turtle artwork already faces right. Anchor the centre as it charges. */
+#friendStage[data-actor="0"] #swimmer { transform:translate(-50%,-50%); }
+.urchinShard { position:absolute; background:url("art/urchin.webp") center/contain no-repeat; pointer-events:none; }
