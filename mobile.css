@@ -1,0 +1,15 @@
+/* Every screen uses the same visible viewport, including Safari's toolbar. */
+html,body{width:var(--vw-js,100vw);height:var(--vh-js,100dvh);right:auto;bottom:auto;}
+body:not(.donuk) #yataySar,body:not(.donuk) .ortKat,body:not(.donuk) #cevirUyari{position:fixed;inset:auto;left:0;top:0;width:var(--vw-js,100vw);height:var(--vh-js,100dvh);}
+#girisKutu{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
+.intro{top:env(safe-area-inset-top);bottom:env(safe-area-inset-bottom);height:auto;left:max(5%,env(safe-area-inset-left));}
+@media(max-height:450px){
+ .intro{gap:1vmin;}
+ .intro h1{font-size:clamp(30px,12vmin,54px);margin:1.5vmin 0;}
+ .collection{font-size:clamp(9px,2.5vmin,13px);padding:.35em .8em;}
+ .intro #play,.intro #guide{height:10vmin;min-height:30px;width:34vmin;font-size:5vmin;}
+ .intro small{font-size:3vmin;}
+ .publisher-logo{top:max(10px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));width:24vmin;}
+ #eventHint{max-width:43%;font-size:3vmin;}
+}
+body.donuk dialog{width:70%;max-height:90%;}

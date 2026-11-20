@@ -433,7 +433,7 @@ body.giriste #dunya{visibility:hidden;}
   *,*::before,*::after{animation-duration:.01s !important;animation-iteration-count:1 !important;transition-duration:.01s !important;}
 }
 </style>
-<link rel="stylesheet" href="river.css"><link rel="stylesheet" href="turtle.css"></head>
+<link rel="stylesheet" href="river.css"><link rel="stylesheet" href="turtle.css"><link rel="stylesheet" href="mobile.css?v=2"></head>
 <body class="giriste">
 
 <!-- ====== AYARLAR (Burak: burayı düzenleyebilirsin) ====== -->
@@ -1003,7 +1003,7 @@ function dongu(t){
   requestAnimationFrame(dongu);
   let dt = Math.min((t - O.sonT)/1000, .05);
   O.sonT = t;
-  if(O.ekran!=="oyun" || O.duraklat) return;
+  if(O.ekran!=="oyun" || O.duraklat || (innerHeight>innerWidth && !document.body.classList.contains("donuk"))) return;
   const s = ARK($("#sahne"));
   const p = $("#pirpir");
   const pBoy = p.offsetWidth;
@@ -1797,5 +1797,6 @@ body:not(.donuk) #iaKontrol{display:none;}
 })();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "b1527b9895254beeacd3316ee9af33f2"}'></script><!-- End Cloudflare Web Analytics -->
+<script src="enhancements.js?v=2"></script>
 </body>
 </html>
