@@ -1,0 +1,67 @@
+/* Short, press-to-dive interstitial; shares the same logical/rotated viewport. */
+#pirpir-dive{position:absolute;inset:0;z-index:95;isolation:isolate;overflow:hidden;pointer-events:auto;}
+#pirpir-dive[hidden]{display:none;}
+/* The curtain, not the shared dialog animation, dismisses this layer. */
+#girisEkrani{transition:none;}
+#girisEkrani[hidden]{display:none!important;}
+body.giris-dalis #sonKat:not(.acik),body.giris-dalis #ipucu{visibility:hidden;transition:none;}
+body.giris-dalis .pSprite{transition:none;}
+#pirpir-dive .water-curtain{position:absolute;inset:0;transform:translateY(var(--dive-wave,114%));opacity:var(--dive-water,1);pointer-events:none;}
+#pirpir-dive .water-curtain svg{display:block;width:100%;height:138%;overflow:visible;}
+#pirpir-dive .bubble-curtain{position:absolute;inset:0;transform:translateY(var(--dive-bubble-rise,74%));opacity:var(--dive-air,0);pointer-events:none;}
+#pirpir-dive .dive-bubble{position:absolute;left:var(--x);top:var(--y);width:var(--d);aspect-ratio:1;border:2px solid #dbfffbd9;border-radius:50%;background:radial-gradient(circle at 28% 25%,#fffbe3cf 0 9%,#b6fff74a 13% 23%,#67d9e00b 34%,#1e859738 72%,#ccfffad9 100%);box-shadow:inset 0 2px 2px #eefff87d;}
+/* Carved river-shell trophy: the cup is visual, the localized record stays real text. */
+#girisEkrani #best {
+  --best-h:clamp(42px,min(calc(14.1 * var(--oyun-vh)),calc(11.9 * var(--oyun-vw))),110px);
+  position:relative;isolation:isolate;display:grid;
+  grid-template-columns:var(--best-h) minmax(0,1fr);
+  grid-template-rows:1fr;
+  align-items:center;flex:none;align-self:center;
+  width:min(97%,clamp(146px,calc(26 * var(--oyun-vw)),350px));height:var(--best-h);
+  gap:0 clamp(4px,.75vmin,12px);margin:0;padding:0 clamp(10px,2.3vmin,24px) 0 clamp(5px,1.5vmin,16px);
+  background:none;border:0;box-shadow:none;color:#153e3f;
+}
+#girisEkrani #best::before {
+  content:"";position:absolute;inset:13% 0;z-index:-1;
+  background:url(secondary-plaque.webp) center/100% 100% no-repeat;
+  filter:drop-shadow(0 2px 2px #164d4844);pointer-events:none;
+}
+#best .best-cup-art {
+  grid-area:1/1;width:100%;height:100%;object-fit:contain;
+  display:block;filter:drop-shadow(0 2px 2px #07564d55);pointer-events:none;
+}
+#best .best-copy {
+  grid-area:1/2;align-self:center;min-width:0;
+  display:grid;align-content:center;gap:clamp(1px,.35vmin,5px);
+  text-align:center;line-height:1;transform:translateY(-1px);
+}
+#best .best-points {
+  display:block;min-width:0;
+  font:900 clamp(17px,calc(var(--best-h)*.33),39px)/1 system-ui,sans-serif;
+  letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+  text-shadow:0 1px #dafff2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+#best .best-caption {
+  display:block;min-width:0;
+  font:850 clamp(9px,calc(var(--best-h)*.18),16px)/1.15 system-ui,sans-serif;
+  line-height:1.2;color:#174b4c;overflow-wrap:anywhere;
+}
+#best .best-caption .compact-label{display:none;}
+body.kisaGiris #girisEkrani .intro {
+  --giris-h1:clamp(29px,min(calc(13.45 * var(--oyun-vh)),calc(10.3 * var(--oyun-vw))),49px);
+  bottom:calc(var(--oyun-alt) + clamp(30px,calc(10.2 * var(--oyun-vh)),33px));
+}
+body.kisaGiris #girisEkrani #best {
+  --best-h:clamp(25px,calc(12.4 * var(--oyun-vh)),34px);
+  width:min(91%,148px);height:var(--best-h);
+  grid-template-columns:var(--best-h) minmax(0,1fr);grid-template-rows:1fr;
+  gap:0 4px;padding:0 10px 0 5px;
+}
+body.kisaGiris #best .best-copy{
+  display:flex;align-items:center;justify-content:center;gap:4px;transform:none;
+}
+body.kisaGiris #best .best-caption{flex:none;line-height:1.05;font-size:11px;color:#164443;}
+body.kisaGiris #best .best-caption .full-label{display:none;}
+body.kisaGiris #best .best-caption .compact-label{display:inline;}
+body.kisaGiris #best .best-points{font-size:13px;max-width:58px;color:#123e3d;}
+@media(prefers-reduced-motion:reduce){#pirpir-dive{display:none;}}

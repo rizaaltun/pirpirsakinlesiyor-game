@@ -25,20 +25,8 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;position:fixed;width:100%;
   top:0;left:0;right:0;bottom:0;
-  overscroll-behavior:none;touch-action:none;}
-:root{ --vh:100vh; --vw:100vw; --vh-js:100vh; }
-/* ===== TAM EKRAN FİT (her cihazda görünen alana tam oturur) =====
-   Önce dvh (dinamik viewport, adres çubuğu durumuna göre), o yoksa JS'in yazdığı
-   --vh-js, o da yoksa vh. Böylece Safari/Firefox adres çubuğu olsa bile alt kesilmez. */
-body{ background:#0E3C37; }
-#yataySar{position:fixed;top:0;left:0;right:0;bottom:0;
-  width:100%;
-  height:100vh;                         /* eski tarayıcı yedeği */
-  height:var(--vh-js, 100vh);           /* JS ölçümü (en güvenilir, görünen alan) */
-  overflow:hidden;}
-@supports (height:100dvh){
-  #yataySar{ height:100dvh; }           /* modern tarayıcı: dinamik viewport */
-}
+  overscroll-behavior:none;}
+body{background:#0E3C37;}
 /* ===== DİK TUTUNCA: "telefonu yan çevir" uyarısı ===== */
 #cevirUyari{position:fixed;inset:0;z-index:9999;display:none;
   flex-direction:column;align-items:center;justify-content:center;gap:3vmin;
@@ -51,15 +39,12 @@ body{ background:#0E3C37; }
   border-radius:4vw;padding:3.4vw 5.5vw;color:#3A3D42;}
 #cevirUyari .anaEkranIpucu b{color:#E8744F;}
 #cevirUyari .paylasIkon{height:1.3em;width:auto;vertical-align:-.38em;margin:0 .12em;}
-@media (orientation:portrait){
-  #cevirUyari{display:flex;}
-  #yataySar{visibility:hidden;}   /* dik tutarken oyunu gizle, sadece uyarı görünsün */
-}
+
 body{
   font-family:ui-rounded,"Hiragino Maru Gothic ProN","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
   background:var(--su);color:var(--murekkep);
   user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
-  touch-action:none;position:fixed;inset:0;
+  position:fixed;inset:0;
 }
 button{font-family:inherit;border:none;cursor:pointer;background:none;}
 
@@ -433,8 +418,9 @@ body.giriste #dunya{visibility:hidden;}
   *,*::before,*::after{animation-duration:.01s !important;animation-iteration-count:1 !important;transition-duration:.01s !important;}
 }
 </style>
-<link rel="stylesheet" href="river.css"><link rel="stylesheet" href="turtle.css"><link rel="stylesheet" href="mobile.css?v=2"></head>
+<link rel="stylesheet" href="river.css"><link rel="stylesheet" href="turtle.css"><link rel="stylesheet" href="mobile.css?v=5"><link rel="stylesheet" href="intro.css?v=5"><link rel="stylesheet" href="intro-dive.css?v=5"><script src="intro-dive.js?v=2"></script><script src="play-viewport.js?v=1"></script><link rel="stylesheet" href="pirpir-i18n.css?v=2"><script src="pirpir-i18n.js?v=2"></script></head>
 <body class="giriste">
+<div id="oyunPencereOlcer" aria-hidden="true"></div>
 
 <!-- ====== AYARLAR (Burak: burayı düzenleyebilirsin) ====== -->
 <script>
@@ -540,13 +526,67 @@ const AYAR = {
   </div>
 </div>
 
-</div><!-- yataySar -->
 <!-- ====== GİRİŞ EKRANI ====== -->
 <!-- Girişte yayınevi logosu güvenli kenar boşluklarıyla yer alır. -->
-<div class="ortKat acik" id="girisEkrani"><div id="girisKutu"><img class="publisher-logo" src="assets/ucan-fil.svg" alt="Uçan Fil" width="195" height="58"><section class="intro">
-<span class="collection">NEHİR MACERASI</span><h1>Pırpır<br><em>Sakinleşiyor</em></h1>
-<button class="shell" id="play">Oyna</button><button class="guide" id="guide">Nasıl oynanır?</button><small id="best"></small></section>
-<dialog id="instructions"><h2>Nehirde nasıl yüzülür?</h2><p>Basılı tutunca yüksel, bırakınca alçal. Dikenli kestanelerin arasından geç!</p><p>Her 5 metre ve her baloncuk 1 puan. Beşli seride +2, onlu seride +5 kazan. Altın baloncuk sakinleştirir, yosun köftesi 8 saniyelik hız kalkanı verir.</p><p>Tospik soldan gelip kestaneleri kırar. Açtığı yoldaki iki baloncuğu toplayınca +8 kazanırsın. Tatlı su kerevitinin açtığı aralıktan geçmek +8, kaçırmak −50 puan.</p><button class="shell" id="closeGuide">Anladım</button></dialog></div></div>
+<div class="ortKat acik" id="girisEkrani"><div id="girisKutu">
+<img class="publisher-logo" src="assets/ucan-fil.svg" alt="Uçan Fil" width="195" height="58">
+<section class="intro" aria-labelledby="girisBaslik">
+  <div class="intro-title">
+    <span class="intro-yildiz sol" aria-hidden="true"></span><span class="intro-yildiz sag" aria-hidden="true"></span>
+    <h1 id="girisBaslik" aria-label="Pırpır Sakinleşiyor">
+      <button id="intro-title-touch" type="button" aria-label="Pırpır Sakinleşiyor: baloncuk çıkar">
+        <span class="intro-name">Pırpır</span>
+        <span class="intro-subtitle">Sakinleşiyor</span>
+      </button>
+    </h1>
+    <div class="intro-splash" id="intro-splash" aria-hidden="true"></div>
+  </div>
+  <button class="shell" id="play">Oyna</button>
+  <button class="guide" id="guide">Nasıl oynanır?</button>
+  <div class="trophy-record" id="best" role="group" aria-label="Kişisel rekor: 0 puan" title="Kişisel rekor: 0 puan">
+    <img class="best-cup-art" src="art/river-record-trophy.webp" width="440" height="382" alt="" aria-hidden="true" decoding="async">
+    <div class="best-copy" aria-hidden="true">
+      <span class="best-caption"><span class="full-label">Kişisel rekor</span><span class="compact-label">Rekor</span></span>
+      <strong class="best-points" id="best-points">0</strong>
+    </div>
+  </div>
+</section>
+<button id="about-open" class="about-open" type="button" aria-label="Kitap hakkında" title="Kitap hakkında" aria-haspopup="dialog" aria-controls="about-dialog">?</button>
+<dialog id="about-dialog" aria-labelledby="about-heading">
+  <div class="about-inside">
+    <img src="art/book-cover.webp" width="768" height="768" alt="Pırpır Sakinleşiyor kitabının kapağı" loading="lazy" decoding="async">
+    <div class="about-copy">
+      <h2 id="about-heading" tabindex="-1" autofocus>Maceramız bu kitapta!</h2>
+      <p id="book-title" lang="tr">Pırpır Sakinleşiyor</p>
+      <section class="about-blurb" aria-labelledby="about-blurb-heading">
+        <h3 id="about-blurb-heading">Arka kapaktan kısa özet</h3>
+        <p id="about-blurb-copy">Pırpır çabucak öfkelenen küçük bir pirana. Onun hikâyesi, öfkeyi tanımayı ve sakinleşmeyi anlatıyor. Paylaşmanın, sabrın ve emek vermenin değerini; birbirimizi anlamanın da nasıl iyi geldiğini gösteriyor.</p>
+      </section>
+      <dl class="about-credits">
+        <div><dt id="about-writer">Yazan ve resimleyen</dt><dd lang="tr">Çağrı Odabaşı</dd></div>
+        <div><dt id="about-maker">Oyunlaştıran</dt><dd lang="tr">Rıza Altun</dd></div>
+      </dl>
+    </div>
+  </div>
+  <div class="about-actions"><button class="shell" id="about-close" type="button">Nehre dön</button></div>
+</dialog>
+<dialog id="instructions" aria-labelledby="instructions-heading"><h2 id="instructions-heading">Nehirde nasıl yüzülür?</h2><p>Basılı tutunca yüksel, bırakınca alçal. Dikenli kestanelerin arasından geç!</p><p>Her 5 metre ve her baloncuk 1 puan. Beşli seride +2, onlu seride +5 kazan. Altın baloncuk sakinleştirir, yosun köftesi 8 saniyelik hız kalkanı verir.</p><p>Tospik soldan gelip kestaneleri kırar. Açtığı yoldaki iki baloncuğu toplayınca +8 kazanırsın. Tatlı su kerevitinin açtığı aralıktan geçmek +8, kaçırmak −50 puan.</p><button class="shell" id="closeGuide">Anladım</button></dialog></div></div>
+<div id="pirpir-dive" hidden aria-hidden="true">
+  <div class="water-curtain">
+    <svg viewBox="0 0 1000 600" preserveAspectRatio="none" focusable="false">
+      <defs><linearGradient id="dive-flow" x2=".23" y2="1"><stop stop-color="#58daca"/><stop offset=".42" stop-color="#187d88"/><stop offset="1" stop-color="#124b68"/></linearGradient><linearGradient id="dive-shine" x2="1" y2="0"><stop stop-color="#ffffff" stop-opacity=".02"/><stop offset=".35" stop-color="#b4fff0" stop-opacity=".58"/><stop offset="1" stop-color="#cffff5" stop-opacity=".14"/></linearGradient></defs>
+      <path d="M0 46C138 60 194 3 333 24S550 68 675 40 870 17 1000 39V600H0Z" fill="url(#dive-flow)"/>
+      <path d="M0 50C134 67 198 11 333 31S548 74 678 47 872 22 1000 46" fill="none" stroke="#d4fff0" stroke-width="8" opacity=".82"/>
+      <path d="M0 85c132 27 254-57 399-15s228 49 343 19 171-19 258-15M0 185c148-50 297 47 427-2s242-63 573-17" fill="none" stroke="url(#dive-shine)" stroke-width="12" opacity=".33"/>
+    </svg>
+  </div>
+  <div class="bubble-curtain">
+    <i class="dive-bubble" style="--x:11%;--y:56%;--d:clamp(15px,3.6vmin,34px)"></i><i class="dive-bubble" style="--x:27%;--y:34%;--d:clamp(12px,2.1vmin,24px)"></i>
+    <i class="dive-bubble" style="--x:40%;--y:70%;--d:clamp(25px,6.4vmin,64px)"></i><i class="dive-bubble" style="--x:49%;--y:51%;--d:clamp(8px,1.6vmin,20px)"></i>
+    <i class="dive-bubble" style="--x:62%;--y:39%;--d:clamp(18px,4.2vmin,46px)"></i><i class="dive-bubble" style="--x:72%;--y:68%;--d:clamp(9px,2vmin,22px)"></i>
+    <i class="dive-bubble" style="--x:84%;--y:44%;--d:clamp(16px,3.6vmin,36px)"></i><i class="dive-bubble" style="--x:93%;--y:56%;--d:clamp(9px,2.4vmin,23px)"></i>
+  </div>
+</div>
 <!-- ====== BAŞARI KARTI ====== -->
 <div class="ortKat" id="sonKat">
   <div class="kart">
@@ -569,50 +609,70 @@ const AYAR = {
   </div>
   <button id="nefesGeri" aria-label="Geri dön">↩️</button>
 </div>
-
+</div><!-- yataySar -->
 
 <script>
 "use strict";
 /* ================= YARDIMCILAR ================= */
 const $ = s => document.querySelector(s);
+const tr = (key,params) => PirpirI18n.t(key,params);
+const sayi = value => PirpirI18n.number(value);
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
 const rast = (a,b) => a + Math.random()*(b-a);
 /* ARK: elemanın DÜZEN ölçüsü. getBoundingClientRect CSS transform'dan
    (döndürülmüş mod) etkilenir, offsetWidth/offsetHeight etkilenmez. */
 function ARK(el){ return { width: el.offsetWidth, height: el.offsetHeight }; }
 
-/* ===== GERÇEK EKRAN ÖLÇÜMÜ (tam doldur) =====
-   Adres çubuğu yer kaplayınca oyunun altı taşıp görünmez oluyordu. Burada
-   GÖRÜNEN alanı (visualViewport.height — adres çubuğu HARİÇ) kesin ölçüp
-   --vw/--vh'a yazıyoruz. Oyun her zaman görünen alana tam sığar, altı kesilmez. */
+/* Tek ölçü: görünür pencere, adres çubuğu ve bölünmüş ekran dahil. */
+const ekran = { width:0, height:0, left:0, top:0, bekliyor:false, donuk:false, aci:0 };
+const pencereOlcer=$("#oyunPencereOlcer");
+const dinamikPencere=window.CSS?.supports("height:100dvh");
+let iaDonus = 0, ekranRaf = 0;
 function ekraniOlc(){
-  const vv = window.visualViewport;
-  const W = Math.round(vv ? vv.width  : (document.documentElement.clientWidth  || window.innerWidth));
-  const H = Math.round(vv ? vv.height : (document.documentElement.clientHeight || window.innerHeight));
-  const r = document.documentElement.style;
-  r.setProperty("--vw-js", W+"px");
-  r.setProperty("--vh-js", H+"px");
-  r.setProperty("--vw", W+"px");   // giriş kutusu gibi yerler için
-  r.setProperty("--vh", H+"px");
+  const root=document.documentElement,body=document.body;
+  const next=PirpirViewport.measure({
+    dynamic:dinamikPencere?pencereOlcer.getBoundingClientRect():null,
+    layout:{width:root.clientWidth||window.innerWidth,height:window.innerHeight||root.clientHeight},
+    visual:window.visualViewport,rotation:iaDonus
+  });
+  if(!next)return;
+  const {width:w,height:h,left,top,donuk,bekliyor,gameWidth,gameHeight}=next;
+  if(w===ekran.width && h===ekran.height && left===ekran.left && top===ekran.top &&
+     bekliyor===ekran.bekliyor && donuk===ekran.donuk && iaDonus===ekran.aci) return;
+  Object.assign(ekran,next);
+  for(const [name,value] of Object.entries({
+    w:w, h:h, x:left, y:top, "oyun-w":gameWidth, "oyun-h":gameHeight
+  })) root.style.setProperty("--ekran-"+name,value+"px");
+  body.classList.toggle("donuk",donuk);
+  body.classList.toggle("ters",donuk && iaDonus<0);
+  body.classList.toggle("dikey",bekliyor);
+  body.classList.toggle("darYukseklik",(donuk?w:h)<=450);
+  body.classList.toggle("kisaGiris",gameHeight<=344);
+  $("#yataySar").inert = bekliyor;
+  if(bekliyor){
+    const language = $("#pirpir-language");
+    if(language)language.open=false;
+    for (const dialog of [$("#instructions"), $("#about-dialog")]){
+      if(dialog.open) dialog.close();
+    }
+  }
 }
-function ekraniOlcGecikmeli(){ ekraniOlc(); setTimeout(ekraniOlc,120); setTimeout(ekraniOlc,400); }
+function ekraniPlanla(){
+  if(ekranRaf) return;
+  ekranRaf = requestAnimationFrame(()=>{ ekranRaf=0; ekraniOlc(); });
+}
+function ekraniOlcGecikmeli(){
+  ekraniPlanla(); setTimeout(ekraniPlanla,120); setTimeout(ekraniPlanla,400);
+}
 ekraniOlc();
-addEventListener("resize", ekraniOlc);
-addEventListener("orientationchange", ekraniOlcGecikmeli);
-addEventListener("load", ekraniOlcGecikmeli);
-if(window.visualViewport){
-  visualViewport.addEventListener("resize", ekraniOlc);
-  visualViewport.addEventListener("scroll", ekraniOlc);
-}
-// sayfa kaydırmasını engelle (adres çubuğunu geri getirmesin)
-addEventListener("scroll", ()=>window.scrollTo(0,0), {passive:false});
-document.addEventListener("touchmove", e=>{ if(e.touches.length>1) e.preventDefault(); }, {passive:false});
-// Güvenlik ağı: ilk 3 saniye boyunca periyodik ölç (Safari adres çubuğu animasyonu otursun)
-let olcSayac = 0;
-const olcInterval = setInterval(()=>{
-  ekraniOlc();
-  if(++olcSayac > 12) clearInterval(olcInterval);   // ~3 sn (250ms x 12)
-}, 250);
+if(window.ResizeObserver) new ResizeObserver(ekraniPlanla).observe(pencereOlcer);
+addEventListener("resize",ekraniPlanla);
+addEventListener("orientationchange",ekraniOlcGecikmeli);
+addEventListener("pageshow",ekraniOlcGecikmeli);
+document.addEventListener("fullscreenchange",ekraniOlcGecikmeli);
+document.addEventListener("webkitfullscreenchange",ekraniOlcGecikmeli);
+window.visualViewport?.addEventListener("resize",ekraniPlanla);
+window.visualViewport?.addEventListener("scroll",ekraniPlanla);
 
 /* ================= SES MOTORU ================= */
 const Ses = {
@@ -669,6 +729,7 @@ const Ses = {
 /* ================= GENEL DURUM ================= */
 const O = {
   girisYapildi:false,
+  girisBekliyor:false,
   calisiyor:false,
   duraklat:false,          // nefes kapısı açıkken
   bitis:false,             // arkadaşlara kavuşma sahnesi
@@ -744,7 +805,7 @@ function ofkeyiCiz(){
 }
 function canCiz(){
   const hearts=$("#canKutu");
-  hearts.setAttribute("aria-label",O.can+" can");
+  hearts.setAttribute("aria-label",tr("lives",{n:O.can}));
   [...hearts.children].forEach((heart,i)=>heart.classList.toggle("spent",i>=O.can));
 }
 function yoluCiz(){
@@ -850,7 +911,7 @@ function komboGoster(){
   const k = $("#komboYazi");
   k.classList.toggle("gor",O.kombo>=3);
   if(O.kombo>=3){
-   k.textContent="×"+O.kombo;
+   k.textContent="×"+sayi(O.kombo);
    river.comboUntil=O.zaman+1.1;
   }
 }
@@ -862,7 +923,7 @@ function balonTopla(o){
   puan(1);
   O.ofke = clamp(O.ofke - AYAR.BALONCUK_SAKINLIK, 0, 100);
   ofkeyiCiz();
-  $("#skorYazi").textContent = O.skor;
+  $("#skorYazi").textContent = sayi(O.skor);
   Ses.topla(O.kombo);
   komboGoster();
   ucanYazi(o.x, o.y-o.r, "+1");
@@ -870,7 +931,7 @@ function balonTopla(o){
   if(O.kombo%5===0){
    const big=O.kombo%10===0,bonus=big?5:2;
    puan(bonus);
-   ucanYazi(o.x+o.r,o.y+o.r,(big?"İnci yağmuru!":"Işıl ışıl!")+" +"+bonus,true);
+   ucanYazi(o.x+o.r,o.y+o.r,tr(big?"pearls":"sparkle")+" +"+sayi(bonus),true);
    [1,1.25,1.5,big?2:1.875].forEach((n,i)=>Ses.nota(523*n,.19,"sine",.10,i*.065));
   }
 
@@ -905,7 +966,7 @@ function kofteTopla(o){
   objeTopla(o);
   O.kalkan = AYAR.KALKAN_SURESI;
   kalkanGuncelle();
-  ucanYazi(o.x, o.y-o.r, "HIZ KALKANI!", true);
+  ucanYazi(o.x, o.y-o.r, tr("shield"), true);
   parcala(o.x,o.y,["🛡️","✨","💚"],6);
 
 }
@@ -930,7 +991,7 @@ function altinTopla(o){
   $("#nefesFlas").style.opacity = 1;
   $("#nefesBuyuk").classList.add("gor");
   O.ofke = 0; ofkeyiCiz();
-  ucanYazi(o.x,o.y-o.r,"NEFES!",true);
+  ucanYazi(o.x,o.y-o.r,tr("breath"),true);
   const kivilcimlar = objeler.filter(b=>b.tip==="kivilcim");
   kivilcimlar.forEach((b,i)=>{
     setTimeout(()=>{
@@ -950,17 +1011,17 @@ function altinTopla(o){
 }
 
 /* ================= TUR AKIŞI ================= */
-function turBaslat(){
+function turBaslat(beklet=false){
   ekraniOlc();                 // ekran boyutunu tazele (tekrar oynarken boş bant olmasın)
   hepsiniTemizle();
-  O.calisiyor = true; O.duraklat = false; O.bitis = false;
+  O.calisiyor = !beklet; O.duraklat = false; O.bitis = false;
   resetEvents(); O.ilerleme = 0; O.zaman = 0;
   O.skor = 0; O.kombo = 0; O.ofke = 0; O.can = AYAR.CAN;
   O.kalkan = 0;
   O.dokunulmaz = 0; O.zamanOlcek = 1;
   O.sonSpawn = 0; O.sonAltin = -6; O.sonKofte = -8;
   O.vy = 0; O.pyHazir = false; O.basili = false;   // uçuş fiziğini sıfırla
-  $("#skorYazi").textContent = 0;
+  $("#skorYazi").textContent = sayi(0);
   ofkeyiCiz(); canCiz(); komboGoster(); yoluCiz(); kalkanGuncelle();
   $("#pirpir").style.left = "10%";
   $("#arkadaslar").style.right = "-40%";
@@ -968,7 +1029,10 @@ function turBaslat(){
   arkadasSifirla();
   $("#pirpir").classList.remove("ucuyor");
   $("#sonKat").classList.remove("acik");
-  baslaGorseliPatlat();
+  if(beklet){
+    const p=$("#pirpir");O.py=$("#sahne").offsetHeight*.45;O.pyHazir=true;
+    p.style.transform=`translateY(${-p.offsetWidth/2}px) rotate(0deg)`;
+  }else baslaGorseliPatlat();
 }
 function baslaGorseliPatlat(){
   const ip = $("#ipucu");
@@ -987,13 +1051,13 @@ function kayip(){
     // kaybetti → sertifika yok
   $("#sonKat").classList.remove("kazandi");      // kaybetti → yıldız yok
   setTimeout(()=>{
-    $("#sonBaslik").textContent = "Nehir günlüğün";
+    $("#sonBaslik").textContent = tr("diary");
     const yeniRekor = O.skor > O.rekor;
     if(yeniRekor){ O.rekor=O.skor; try{localStorage.setItem("pirpir-nehir-best",O.rekor)}catch{} }
-    $("#distanceResult").textContent=mesafe()+" metre yüzdün";
-    $("#sonSkor").textContent = O.skor;
+    $("#distanceResult").textContent=tr("distanceResult",{n:mesafe()});
+    $("#sonSkor").textContent = sayi(O.skor);
     const r = $("#sonRekor");
-    r.textContent = yeniRekor ? "Yeni rekor!" : "Rekor: "+O.rekor;
+    r.textContent = yeniRekor ? tr("newRecord") : tr("record",{n:O.rekor});
     r.classList.toggle("yeni", yeniRekor);
     $("#sonKat").classList.add("acik");
   }, 700);
@@ -1003,7 +1067,7 @@ function dongu(t){
   requestAnimationFrame(dongu);
   let dt = Math.min((t - O.sonT)/1000, .05);
   O.sonT = t;
-  if(O.ekran!=="oyun" || O.duraklat || (innerHeight>innerWidth && !document.body.classList.contains("donuk"))) return;
+  if(O.ekran!=="oyun" || O.duraklat || O.girisBekliyor || ekran.bekliyor){ O.basili=false; return; }
   const s = ARK($("#sahne"));
   const p = $("#pirpir");
   const pBoy = p.offsetWidth;
@@ -1141,39 +1205,50 @@ if(!TamEkran.destekli) $("#tamDugme").style.display = "none";
 // "Ana Ekrana Ekle" ipucu istenmiyor → hiç gösterme
 // if(iosMu && !anaEkrandanMi) $("#iosIpucu").style.display = "block";
 // Döndürme uyarısındaki "Ana Ekrana Ekle" ipucu (zaten ana ekranda değilse göster)
-(function(){
+function anaEkranNotunuGuncelle(){
   const ip = $("#anaEkranIpucu");
   if(!ip || anaEkrandanMi) return;
-  ip.innerHTML = iosMu
-    ? 'Daha iyi deneyim için:<br><b>Paylaş</b> <img class="paylasIkon" src="assets/608d873944d7.webp" alt="Paylaş"> → <b>“Ana Ekrana Ekle”</b>'
-    : 'Daha iyi deneyim için:<br>Menü <b>⋮</b> → <b>“Ana ekrana ekle”</b>';
+  ip.textContent = tr(iosMu?"installIOS":"installOther");
   ip.style.display = "block";
-})();
+}
 $("#tamDugme").onclick = ()=>TamEkran.degistir();
-document.addEventListener("fullscreenchange", ()=>{
-  $("#tamDugme").dataset.expanded=String(TamEkran.acikMi());
+function tamEkranEtiketi(){
+  const dugme=$("#tamDugme"),acik=TamEkran.acikMi();
+  dugme.dataset.expanded=String(acik);
+  dugme.setAttribute("aria-label",tr(acik?"leaveFullscreen":"fullscreen"));
+}
+document.addEventListener("fullscreenchange",tamEkranEtiketi);
+document.addEventListener("webkitfullscreenchange",tamEkranEtiketi);
+
+const ilkNehirHazir=PirpirMenuDive.warmArtwork(['art/river-0.webp','art/foreground.webp',spriteler[0].src]);
+const baslangicDalis = PirpirMenuDive.createDive({
+  overlay:$("#pirpir-dive"),menu:$("#girisEkrani"),
+  blocked:()=>ekran.bekliyor || document.hidden,
+  reduce:()=>reducedMotion.matches,
+  ready:ilkNehirHazir,
+  audio(){O.girisBekliyor=true;document.body.classList.add("giris-dalis");Ses.hazirla();},
+  prepare(){
+    const giris=$("#girisEkrani");giris.hidden=true;giris.classList.remove("acik");
+    document.body.classList.remove("giriste");
+    $("#ipucu").classList.remove("gor","patla");$("#pirpir").classList.remove("yanip");
+    turBaslat(true);
+    landscape(0); // Initial river plates and labels are installed behind opaque water.
+  },
+  enter(){
+    O.girisBekliyor=false;O.girisYapildi=true;O.calisiyor=true;O.sonT=performance.now();
+    document.body.classList.remove("giris-dalis");ekraniOlcGecikmeli();
+  }
 });
-
 $("#play").onclick = ()=>{
-  if(O.girisYapildi) return;   // tekrar tetiklenmesin
-  Ses.hazirla();
-
-  O.girisYapildi = true;
-  document.body.classList.remove("giriste");   // oyun dünyasını göster
-  $("#girisEkrani").classList.remove("acik");
-  turBaslat();
-  // adres çubuğu kapanması/oturması sonrası ekranı tazele (alt bant olmasın)
   ekraniOlc();
-  setTimeout(ekraniOlc, 100);
-  setTimeout(ekraniOlc, 350);
-  setTimeout(ekraniOlc, 700);
-  setTimeout(ekraniOlc, 1200);
+  if(O.girisYapildi || !$("#girisEkrani").classList.contains("acik"))return;
+  baslangicDalis.start();
 };
 $("#tekrarDugme").onclick = ()=>{ Ses.hazirla(); ekraniOlcGecikmeli(); turBaslat(); };
 $("#sesDugme").onclick = function(){
   Ses.hazirla();
   Ses.acikMi = !Ses.acikMi;
-  this.dataset.muted=String(!Ses.acikMi);this.setAttribute("aria-label",Ses.acikMi?"Sesi kapat":"Sesi aç");
+  this.dataset.muted=String(!Ses.acikMi);this.setAttribute("aria-label",tr(Ses.acikMi?"mute":"unmute"));
 };
 
 /* ================= NEFES ALANI =================
@@ -1249,6 +1324,10 @@ function nefesDongu(t){
   requestAnimationFrame(nefesDongu);
   const dt = Math.min((t-(nefesDongu._t||t))/1000,.05);
   nefesDongu._t = t;
+  if(ekran.bekliyor){
+    if(NB.var){ NB.var=false; NB.r=0; NB.tatli=false; nefesGizle(); $("#nefesEl").classList.add("gor"); }
+    return;
+  }
   if(NB.var){
     const R = nHedefR();
     NB.r += (R*PATLAMA/BUYUME)*dt;
@@ -1266,8 +1345,8 @@ function nefesAc(kip){
   // kapi: kızgın Pırpır görseli + zorunlu; kose: sakin görsel + geri düğmesi
   $("#nefesPirpir").src = kip==="kapi" ? spriteler[5].src : spriteler[0].src;
   $("#nefesGeri").style.display = kip==="kapi" ? "none" : "flex";
-  $("#nefesBaslikYazi").textContent = kip==="kapi" ? "Pırpır çok kızdı!" : "Nefes Köşesi";
-  $("#nefesIpucu").textContent = "Basılı tut, baloncuk halkaya ulaşınca bırak.";
+  $("#nefesBaslikYazi").textContent = tr(kip==="kapi"?"angerGate":"breathingCorner");
+  $("#nefesIpucu").textContent = tr("breathingHelp");
   $("#nefesEkrani").classList.add("acik");
   nefesKur();
   $("#nefesEl").classList.add("gor");
@@ -1402,7 +1481,7 @@ function trail(dt,s,boy){
 }
 
 function mesafe(){return Math.floor(river.meters||0)}
-const zones=["Güneşli koy","Kök geçidi","Işıltılı mağara"];
+const zones=["sunny","roots","cave"];
 const coast=$("#coast"), nearBank=$("#nearBank"), cheers=$("#cheers");
 const panels=[...coast.children];
 function landscape(dt){
@@ -1424,12 +1503,13 @@ function landscape(dt){
    next.style.maskImage=at%2?"linear-gradient(to left,transparent,#000 100%)":"linear-gradient(to right,transparent,#000 100%)";
   });
  }
- nearBank.style.backgroundPositionX=(-(d*1.7)%75)+"vw";
+ nearBank.style.backgroundPositionX=(-(d*1.7)%75)*(ekran.donuk?ekran.height:ekran.width)/100+"px";
  if(river.zone!==zone){
-  river.zone=zone;$("#zoneLabel").textContent=zones[zone];
-  if(d>=96) celebrate(zones[zone],Math.floor(d)+" metre");
+  river.zone=zone;$("#zoneLabel").textContent=tr(zones[zone]);
+  if(d>=96) celebrate(tr(zones[zone]),tr("distanceCheer",{n:Math.floor(d)}));
  }
- $("#routeMeters").textContent=Math.floor(d)+" m";
+ const metersLabel=tr("metres",{n:Math.floor(d)});
+ if($("#routeMeters").textContent!==metersLabel)$("#routeMeters").textContent=metersLabel;
 }
 function celebrate(title,subtitle){
  cheers.querySelector("strong").textContent=title;
@@ -1439,11 +1519,11 @@ function celebrate(title,subtitle){
  const field=$("#sahne");starSpray(field.offsetWidth*.5,field.offsetHeight*.23,9);burst(field.offsetWidth*.38,field.offsetHeight*.27,"#ffdf94");burst(field.offsetWidth*.62,field.offsetHeight*.27,"#fff2bf");
 }
 function puan(n){
- O.skor+=n;$("#skorYazi").textContent=O.skor;
+ O.skor+=n;$("#skorYazi").textContent=sayi(O.skor);
  if(O.skor>=river.nextScore){
   const target=river.nextScore;
   river.nextScore=target===25?50:target+50;
-  celebrate(target+" puan!", "Baloncuk şenliği");
+  celebrate(tr("milestone",{n:target}),tr("bubbleParty"));
   Ses.nota(880,.12,"triangle",.12);
  }
 }
@@ -1451,15 +1531,15 @@ function resetEvents(){
  $("#waterFX").replaceChildren();
  cheers.hidden=true;stage.hidden=true;$("#friendMeter").hidden=true;
  Object.assign(river,{meters:0,playSeconds:0,passages:0,panel:-1,zone:-1,nextScore:25,distanceScore:0,nextFriend:0,nextGate:Infinity,encounters:0,active:false,hideAt:4});
- hint("#pirpirIc img","Basılı tut, yüksel. Bırak, alçal.");
+ hint("#pirpirIc img","swim");
 }
 function hint(sprite,message){
  const box=$("#eventHint");box.querySelector("img").src=$(sprite).src;
- box.querySelector("span").textContent=message;box.hidden=false;
+ box.querySelector("span").textContent=tr(message);box.hidden=false;
 }
 const actors = ["#arkKaplumbaga","#arkKerevit"];
 const stage = $("#friendStage");
-const calls = ["Tospik yolu açıyor. İzindeki baloncukları topla!", "Kerevit ipi kesiyor. Aralıktan geç! Kaçırırsan −50."];
+const calls = ["turtle","crayfish"];
 function schoolObject(type,x,y,visit){
  const field=$("#sahne");
  objeYap(type);
@@ -1487,7 +1567,7 @@ function startVisit(){
   swimmer.src=ARKADASLAR[0].kareler[0].src;
   swimmer.style.left=turtlePosition(0)*100+"%";
   swimmer.style.top=lane*100+"%";
-  hint(actors[0]+" img",lane>.5?"Tospik alttan geliyor. İzindeki baloncukları topla!":"Tospik üstten geliyor. İzindeki baloncukları topla!");
+  hint(actors[0]+" img",lane>.5?"turtleLow":"turtleHigh");
 
  }
 
@@ -1572,7 +1652,7 @@ function swimVisit(dt){
    const passed=O.py/h>=v.gapTop+clearance && O.py/h<=v.gapBottom-clearance;
    const delta=passed?8:-50;
    puan(delta);
-   hint(actors[1]+" img",passed?"Geçidi buldun! +8":"Geçidi kaçırdın. −50 puan");
+   hint(actors[1]+" img",passed?"gapFound":"gapMiss");
    river.hideAt=O.zaman+2.3;
    ucanYazi(px*w,O.py-24,passed?"+8":"−50",passed);
    if(passed){starSpray(px*w,O.py,5);Ses.altin();}
@@ -1598,7 +1678,7 @@ function rewardVisit(o){
  if(!v)return;
  if(v.actor===0 && ++v.count===2){
   puan(8);burst(o.x,o.y,"#ffdf77");ucanYazi(o.x,o.y-24,"+8",true);
-  hint(actors[0]+" img","İki baloncuk! Tospik’le +8");river.hideAt=O.zaman+2;
+  hint(actors[0]+" img","twoBubbles");river.hideAt=O.zaman+2;
  }
 }
 function updateRiver(dt){
@@ -1626,16 +1706,82 @@ function updateRiver(dt){
   river.nextGate=O.zaman+9-4*O.ilerleme;
  }
 }
-try{O.rekor=Math.max(0,Number(localStorage.getItem("pirpir-nehir-best"))||0)}catch{}
-function bestLabel(){$("#best").textContent="Kişisel rekor · "+O.rekor+" puan"}
+try{const best=Number(localStorage.getItem("pirpir-nehir-best"));O.rekor=Number.isFinite(best)?Math.max(0,Math.trunc(best)):0;}catch{}
+function bestLabel(){
+  const value=(Number.isFinite(O.rekor)?Math.max(0,Math.trunc(O.rekor)):0),label=tr("bestAria",{n:value});
+  $("#best-points").textContent=sayi(value);
+  $("#best").setAttribute("aria-label",label);
+  $("#best").title=label;
+}
 bestLabel();
-$("#guide").onclick=()=>$("#instructions").showModal();
-$("#closeGuide").onclick=()=>$("#instructions").close();
+/* INTRO INTERACTION */
+const introTitle = $("#girisBaslik");
+const titleTouch = $("#intro-title-touch");
+const introSplash = $("#intro-splash");
+const introTitleFrame = introSplash.parentElement;
+let splashTimer;
+function titlePoint(event, rect){
+  const px = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+  const py = clamp((event.clientY - rect.top) / rect.height, 0, 1);
+  if (!ekran.donuk) return [px, py];
+  return ekran.aci < 0 ? [1 - py, px] : [py, 1 - px];
+}
+titleTouch.addEventListener("click", event=>{
+  if (!$("#girisEkrani").classList.contains("acik")) return;
+  clearTimeout(splashTimer);
+  introSplash.replaceChildren();
+  introTitle.classList.add("intro-glow");
+  splashTimer = setTimeout(()=>{
+    introTitle.classList.remove("intro-glow");
+    introSplash.replaceChildren();
+  }, 680);
+  if (reducedMotion.matches) return;
+  const rect = introTitleFrame.getBoundingClientRect();
+  const [x, y] = event.detail && rect.width && rect.height ? titlePoint(event, rect) : [.5, .45];
+  const group = document.createDocumentFragment();
+  for (let i=0;i<7;i++){
+    const ripple = i===0;
+    const p = document.createElement("i");
+    p.className = ripple ? "intro-ripple" : "intro-bubble";
+    const angle=(i-1)*Math.PI/3;
+    p.style.setProperty("--balon-x", x*100+"%");
+    p.style.setProperty("--balon-y", y*100+"%");
+    p.style.setProperty("--balon-dx", Math.round(Math.cos(angle)*(25+i*5))+"px");
+    p.style.setProperty("--balon-dy", Math.round(-24+Math.sin(angle)*19)+"px");
+    p.style.setProperty("--balon-size", 7+i*2+"px");
+    group.append(p);
+  }
+  introSplash.append(group);
+});
+const aboutDialog = $("#about-dialog");
+const guideDialog = $("#instructions");
+function openIntroDialog(dialog){
+  if(ekran.bekliyor || !$("#girisEkrani").classList.contains("acik") ||
+     aboutDialog.open || guideDialog.open) return;
+  const language = $("#pirpir-language");
+  if(language)language.open=false;
+  dialog.showModal();
+}
+$("#guide").onclick=()=>openIntroDialog(guideDialog);
+$("#closeGuide").onclick=()=>guideDialog.close();
+$("#about-open").onclick=()=>openIntroDialog(aboutDialog);
+$("#about-close").onclick=()=>aboutDialog.close();
+PirpirI18n.mount({onChange(){
+  bestLabel();canCiz();tamEkranEtiketi();anaEkranNotunuGuncelle();
+  $("#sesDugme").setAttribute("aria-label",tr(Ses.acikMi?"mute":"unmute"));
+  $("#skorYazi").textContent=sayi(O.skor);
+  $("#zoneLabel").textContent=tr(zones[river.zone]??"sunny");
+  $("#routeMeters").textContent=tr("metres",{n:mesafe()});
+  $("#sonBaslik").textContent=tr("round");
+  $("#sonRekor").textContent=tr("record",{n:O.rekor});
+}});
+/* END INTRO INTERACTION */
 $("#menu").onclick=()=>{
- O.girisYapildi=false;O.bitis=false;bestLabel();$("#sonKat").classList.remove("acik");document.body.classList.add("giriste");$("#girisEkrani").classList.add("acik");
+ O.girisYapildi=false;O.bitis=false;bestLabel();$("#sonKat").classList.remove("acik");document.body.classList.add("giriste");
+ const giris=$("#girisEkrani");giris.classList.add("acik");giris.hidden=false;
 };
 
-window.addEventListener("resize", ()=>{ if(O.ekran==="nefes") nefesKur(); });
+
 document.addEventListener("contextmenu", e=>e.preventDefault());
 O.sonT = performance.now();
 requestAnimationFrame(dongu);
@@ -1646,42 +1792,12 @@ requestAnimationFrame(dongu);
      Instagram/TikTok/Facebook gibi uygulamaların kendi tarayıcıları dikeye
      kilitlidir: kullanıcı telefonu çevirse bile WebView dönmez. Bu modda tam
      ekran katmanları CSS ile 90° döndürüp dikey pencerede yatay oynatıyoruz.
-     Normal tarayıcılarda bu blok hiç devreye girmez (en başta return eder).
-
-     ÖNEMLİ: #girisEkrani / #sonKat / #sertEkrani / #nefesEkrani katmanları
-     #yataySar'ın DIŞINDA, doğrudan <body> altındadır. Bu yüzden hepsine ayrı
-     ayrı aynı dönüşümü uygulamak gerekiyor. -->
+     Normal tarayıcılarda bu blok devreye girmez. -->
 <style>
-body.iaMod #cevirUyari{ display:none !important; }
-
-body.donuk #yataySar,
-body.donuk #girisEkrani,
-body.donuk #sonKat,
-body.donuk #sertEkrani,
-body.donuk #nefesEkrani,
-body.donuk #iaKontrol{
-  visibility:visible;
-  position:fixed;
-  top:50%; left:50%; right:auto; bottom:auto;
-  width:var(--don-w); height:var(--don-h);
-  transform:translate(-50%,-50%) rotate(var(--don-aci,90deg));
-  transform-origin:50% 50%;
-  /* iç içerik bu değişkenleri kullanıyor: döndürülmüş kutunun ölçüleriyle değiştir */
-  --vw:var(--don-w); --vh:var(--don-h);
-  --vw-js:var(--don-w); --vh-js:var(--don-h);
-}
-body.donuk #yataySar{ visibility:visible !important; }
-
-/* vw/vh kullanan birkaç menü elemanı (254 vmin rotasyondan etkilenmiyor) */
-body.donuk #baslaGorsel{ width:min(calc(var(--don-w)*.82), calc(var(--don-h)*.86), 640px); }
-body.donuk .kart{ max-width:min(calc(var(--don-w)*.82), 420px); }
-body.donuk #sertOnizleme{ max-width:min(calc(var(--don-w)*.82), 540px); max-height:calc(var(--don-h)*.46); }
-body.donuk #nefesIpucu{ width:calc(var(--don-w)*.9); }
-
 /* Döndürülmüş görünümün üstündeki küçük kontroller (her katmanın üstünde kalsın) */
-#iaKontrol{position:fixed;z-index:9998;pointer-events:none;}
+#iaKontrol{position:absolute;inset:0;z-index:9998;pointer-events:none;}
 body:not(.donuk) #iaKontrol{display:none;}
-#iaKontrol .ic{position:absolute;left:1.4vmin;bottom:1.4vmin;
+#iaKontrol .ic{position:absolute;left:max(1.4vmin,var(--oyun-sol));bottom:max(1.4vmin,var(--oyun-alt));
   display:flex;gap:1vmin;align-items:center;pointer-events:auto;opacity:.4;}
 #iaKontrol button{font-family:inherit;font-weight:bold;border:none;cursor:pointer;
   background:rgba(0,0,0,.45);color:#fff;border-radius:50%;
@@ -1690,7 +1806,7 @@ body:not(.donuk) #iaKontrol{display:none;}
   display:flex;align-items:center;justify-content:center;}
 
 /* Dikeyken (henüz telefonu çevirmemişken) düz duran kısa ipucu */
-#iaBilgi{position:fixed;z-index:10000;left:50%;top:max(14px,env(safe-area-inset-top));
+#iaBilgi{position:fixed;z-index:10000;left:calc(var(--ekran-x) + var(--ekran-w)/2);top:calc(var(--ekran-y) + max(14px,env(safe-area-inset-top)));
   transform:translateX(-50%);background:#22252B;color:#fff;font-weight:bold;
   font-family:ui-rounded,"Trebuchet MS",system-ui,sans-serif;
   font-size:15px;line-height:1.35;text-align:center;
@@ -1708,52 +1824,38 @@ body:not(.donuk) #iaKontrol{display:none;}
   var ios = /iPad|iPhone|iPod/.test(ua) ||
             (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   if(!document.getElementById("yataySar")) return;
-  document.body.classList.add("iaMod");
 
   /* --- dönüş yönü (kullanıcı ters bulursa değiştirebilsin) --- */
   var aci = 90;
   try{ var kayit = localStorage.getItem("pirpir_donaci");
        if(kayit === "-90" || kayit === "90") aci = parseInt(kayit, 10); }catch(e){}
 
-  var kok = document.documentElement.style;
-  function olc(){
-    var vv = window.visualViewport;
-    var W = Math.round(vv ? vv.width  : (document.documentElement.clientWidth  || window.innerWidth));
-    var H = Math.round(vv ? vv.height : (document.documentElement.clientHeight || window.innerHeight));
-    if(H > W){                                   /* pencere dikey → içeriği döndür */
-      kok.setProperty("--don-w", H + "px");      /* döndürülmüş kutunun genişliği */
-      kok.setProperty("--don-h", W + "px");      /* döndürülmüş kutunun yüksekliği */
-      kok.setProperty("--don-aci", aci + "deg");
-      document.body.classList.add("donuk");
-    }else{                                       /* pencere zaten yatay → dokunma */
-      document.body.classList.remove("donuk");
-    }
-  }
-  olc();
-  window.addEventListener("resize", olc);
-  window.addEventListener("orientationchange", function(){
-    olc(); setTimeout(olc,150); setTimeout(olc,450);
-  });
-  if(window.visualViewport){
-    visualViewport.addEventListener("resize", olc);
-    visualViewport.addEventListener("scroll", olc);
-  }
-  var say = 0, zaman = setInterval(function(){ olc(); if(++say > 20) clearInterval(zaman); }, 250);
+  iaDonus = aci;
+  ekraniOlc();
 
-  /* --- kontroller: body seviyesinde, tüm katmanların üstünde --- */
+  /* Düğmeler sahneyle birlikte döner. */
   var kontrol = document.createElement("div");
   kontrol.id = "iaKontrol";
   kontrol.innerHTML = '<div class="ic">' +
-      '<button id="iaCevir" aria-label="Yönü değiştir" title="Yönü değiştir">🔄</button>' +
-      '<button id="iaTarayici" aria-label="Tarayıcıda aç" title="Tarayıcıda aç">🌐</button>' +
+      '<button id="iaCevir">🔄</button>' +
+      '<button id="iaTarayici">🌐</button>' +
     '</div>';
-  document.body.appendChild(kontrol);
+  $("#yataySar").appendChild(kontrol);
+  function iaEtiketleri(){
+    for(const [id,key] of [["iaCevir","popupRotate"],["iaTarayici","popupBrowser"]]){
+      const button=document.getElementById(id),label=tr(key);
+      button.setAttribute("aria-label",label);button.title=label;
+    }
+  }
+  iaEtiketleri();
+  window.addEventListener("pirpir:locale",iaEtiketleri);
 
   document.getElementById("iaCevir").addEventListener("click", function(e){
     e.stopPropagation();
     aci = (aci === 90) ? -90 : 90;
     try{ localStorage.setItem("pirpir_donaci", String(aci)); }catch(err){}
-    olc();
+    iaDonus=aci;
+    ekraniOlc();
   });
 
   document.getElementById("iaTarayici").addEventListener("click", function(e){
@@ -1765,31 +1867,31 @@ body:not(.donuk) #iaKontrol{display:none;}
                         "#Intent;scheme=https;package=com.android.chrome;end";
       }catch(err){}
       setTimeout(function(){
-        bilgiGoster('Açılmadıysa: sağ üstteki <b>⋮</b> → <b>“Tarayıcıda aç”</b>', 6000);
+        bilgiGoster(tr("popupAndroid"),6000);
       }, 1200);
     }else{
       try{ location.href = url.replace(/^https:\/\//, "x-safari-https://"); }catch(err){}
       setTimeout(function(){
-        bilgiGoster('Açılmadıysa: sağ alttaki <b>⋯</b> → <b>“Tarayıcıda aç”</b>', 6000);
+        bilgiGoster(tr("popupIOS"),6000);
       }, 900);
     }
   });
 
   /* --- düz duran kısa ipucu (telefon henüz çevrilmemişken okunabilsin) --- */
   var bilgi = null, bilgiZaman = null;
-  function bilgiGoster(html, sure){
+  function bilgiGoster(text, sure){
     if(!bilgi){
       bilgi = document.createElement("div");
       bilgi.id = "iaBilgi";
       document.body.appendChild(bilgi);
     }
-    bilgi.innerHTML = html;
+    bilgi.textContent = text;
     bilgi.classList.remove("gizle");
     clearTimeout(bilgiZaman);
     bilgiZaman = setTimeout(function(){ bilgi.classList.add("gizle"); }, sure || 4000);
   }
   if(document.body.classList.contains("donuk")){
-    bilgiGoster("Telefonu yan çevirip oyna 🔄", 4500);
+    bilgiGoster(tr("popupTurn"),4500);
   }
   document.addEventListener("pointerdown", function(){
     if(bilgi) bilgi.classList.add("gizle");
@@ -1797,6 +1899,6 @@ body:not(.donuk) #iaKontrol{display:none;}
 })();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "b1527b9895254beeacd3316ee9af33f2"}'></script><!-- End Cloudflare Web Analytics -->
-<script src="enhancements.js?v=2"></script>
+<script src="enhancements.js?v=4"></script>
 </body>
 </html>

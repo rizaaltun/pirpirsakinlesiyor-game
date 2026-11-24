@@ -1,12 +1,18 @@
 /* Preserve normalized positions when toolbars, orientation or split view resize. */
 (()=>{
  const field=document.getElementById('sahne');
- let previous={w:field.offsetWidth,h:field.offsetHeight};
+ let previous=PirpirViewport.nextPlayingSize(null,field.offsetWidth,field.offsetHeight,ekran.bekliyor);
  new ResizeObserver(()=>{
   const w=field.offsetWidth,h=field.offsetHeight;
-  if(w&&h&&previous.w&&previous.h){
+  const next=PirpirViewport.nextPlayingSize(previous,w,h,ekran.bekliyor);
+  if(next&&previous&&next!==previous&&(w!==previous.w||h!==previous.h)){
    const sx=w/previous.w,sy=h/previous.h;
    if(O.pyHazir){O.py*=sy;O.vy*=sy;}
+   if(O.ekran==="nefes"){
+    NB.r*=Math.min(w,h)/Math.min(previous.w,previous.h);
+    nefesKur();
+    if(NB.var)nefesCiz();
+   }
    const scale=Math.min(w,h)/Math.min(previous.w,previous.h);
    for(const item of objeler){
     item.x*=sx;item.y*=sy;item.hizX*=sx;item.r*=scale;item.salGen*=sy;
@@ -15,7 +21,7 @@
     }
    }
   }
-  previous={w,h};
+  previous=next;
  }).observe(field);
  /* Original instrumental loop: marimba melody, warm bass and soft percussion. */
  let bus=null,next=0,step=0;
@@ -32,8 +38,7 @@
   if(!Ses.ctx)return;
   const c=Ses.ctx;
   if(!bus){bus=c.createGain();bus.gain.value=0;bus.connect(c.destination);}
-  const portrait=innerHeight>innerWidth&&!document.body.classList.contains('donuk');
-  const active=O.girisYapildi&&!O.bitis&&!document.hidden&&!portrait&&!O.duraklat;
+  const active=O.girisYapildi&&!O.bitis&&!document.hidden&&!ekran.bekliyor&&!O.duraklat;
   bus.gain.setTargetAtTime(active&&Ses.acikMi?(O.ekran==='nefes'?.025:.10):0,c.currentTime,.04);
   if(!active||!Ses.acikMi||c.state!=='running'){next=0;return;}
   if(!next)next=c.currentTime+.04;

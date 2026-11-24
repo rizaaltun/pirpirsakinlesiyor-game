@@ -1,0 +1,42 @@
+/* One native, 20 px flag above the art; keep a full tap target and safe-area spacing. */
+#girisEkrani #pirpir-language{
+  position:absolute;
+  top:calc(var(--oyun-top) + var(--menu-edge));
+  right:calc(var(--oyun-sag) + var(--menu-edge));
+  z-index:7;
+  color:#143e3f;
+  font:700 14px/1.25 system-ui,sans-serif;
+  -webkit-user-select:none;user-select:none;
+}
+#girisEkrani #pirpir-language summary{
+  width:var(--menu-corner-size);height:var(--menu-corner-size);display:grid;place-items:center;list-style:none;
+  cursor:pointer;touch-action:manipulation;
+  background:transparent url(pebble.webp) center/contain no-repeat;
+  filter:drop-shadow(0 2px 3px #14333f70);
+}
+#girisEkrani #pirpir-language summary::-webkit-details-marker{display:none;}
+#girisEkrani .pirpir-language-flag{
+  font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",emoji,sans-serif;
+  font-size:clamp(18px,calc(var(--menu-corner-size)*.45),26px);line-height:1;white-space:nowrap;
+}
+#girisEkrani #pirpir-language summary:focus-visible,#girisEkrani #pirpir-language button:focus-visible{
+  outline:2px solid #17606b;outline-offset:2px;border-radius:10px;
+}
+#girisEkrani .pirpir-language-list{
+  position:absolute;top:calc(100% + 3px);right:0;
+  min-width:142px;
+  max-height:max(48px,calc(var(--ekran-oyun-h) - var(--oyun-top) - var(--oyun-alt) - 2 * var(--menu-corner-size) - 2 * var(--menu-edge) - 10px));
+  overflow:auto;
+  border:1px solid #82ada2;border-radius:14px;padding:4px;
+  background:#fff9e9;box-shadow:0 5px 14px #17363b48;overscroll-behavior:contain;touch-action:pan-y;
+}
+#girisEkrani #pirpir-language button{
+  display:flex;align-items:center;gap:8px;width:100%;min-height:34px;
+  padding:4px 8px;white-space:nowrap;background:transparent;border-radius:8px;
+  color:#143e3f;font:inherit;text-align:left;touch-action:manipulation;
+}
+#girisEkrani #pirpir-language button[aria-pressed="true"]{background:#d2eee5;}
+#girisEkrani #pirpir-language button:hover{background:#e6f4e9;}
+:lang(ru) #girisEkrani .intro-subtitle{font-size:.48em;}
+:lang(zh) #girisEkrani .intro-subtitle{font-weight:800;font-size:.50em;letter-spacing:0;}
+:lang(zh) #girisEkrani .intro-name{font-weight:900;font-size:.78em;letter-spacing:0;}

@@ -1,15 +1,87 @@
-/* Every screen uses the same visible viewport, including Safari's toolbar. */
-html,body{width:var(--vw-js,100vw);height:var(--vh-js,100dvh);right:auto;bottom:auto;}
-body:not(.donuk) #yataySar,body:not(.donuk) .ortKat,body:not(.donuk) #cevirUyari{position:fixed;inset:auto;left:0;top:0;width:var(--vw-js,100vw);height:var(--vh-js,100dvh);}
-#girisKutu{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
-.intro{top:env(safe-area-inset-top);bottom:env(safe-area-inset-bottom);height:auto;left:max(5%,env(safe-area-inset-left));}
-@media(max-height:450px){
- .intro{gap:1vmin;}
- .intro h1{font-size:clamp(30px,12vmin,54px);margin:1.5vmin 0;}
- .collection{font-size:clamp(9px,2.5vmin,13px);padding:.35em .8em;}
- .intro #play,.intro #guide{height:10vmin;min-height:30px;width:34vmin;font-size:5vmin;}
- .intro small{font-size:3vmin;}
- .publisher-logo{top:max(10px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));width:24vmin;}
- #eventHint{max-width:43%;font-size:3vmin;}
+/* The playing field and every game overlay share one visible viewport. */
+:root{
+ background:#2ba89a;
+ --ekran-w:100vw;--ekran-h:100vh;--ekran-x:0px;--ekran-y:0px;
+ --ekran-oyun-w:var(--ekran-w);--ekran-oyun-h:var(--ekran-h);
 }
-body.donuk dialog{width:70%;max-height:90%;}
+@supports(height:100dvh){:root{--ekran-w:100dvw;--ekran-h:100dvh;}}
+/* This zero-impact CSS box, not the inset visual viewport, tracks browser chrome. */
+#oyunPencereOlcer{position:fixed;top:0;left:0;width:100dvw;height:100dvh;visibility:hidden;pointer-events:none;}
+#yataySar,#cevirUyari{
+ position:fixed;inset:auto;top:var(--ekran-y);left:var(--ekran-x);
+ width:var(--ekran-w);height:var(--ekran-h);overflow:hidden;
+}
+#yataySar{
+ --oyun-top:env(safe-area-inset-top,0px);--oyun-sag:env(safe-area-inset-right,0px);
+ --oyun-alt:env(safe-area-inset-bottom,0px);--oyun-sol:env(safe-area-inset-left,0px);
+ --oyun-vw:calc(var(--ekran-oyun-w)/100);--oyun-vh:calc(var(--ekran-oyun-h)/100);
+ --oyun-vmin:min(var(--oyun-vw),var(--oyun-vh));
+}
+body.dikey #cevirUyari{display:flex;}
+#sahne,#nefesSahne,#cevirUyari{touch-action:none;}
+body.dikey #yataySar{visibility:hidden;}
+body.donuk #yataySar{
+ --oyun-top:env(safe-area-inset-right,0px);--oyun-sag:env(safe-area-inset-bottom,0px);
+ --oyun-alt:env(safe-area-inset-left,0px);--oyun-sol:env(safe-area-inset-top,0px);
+ left:calc(var(--ekran-x) + var(--ekran-w)/2);
+ top:calc(var(--ekran-y) + var(--ekran-h)/2);
+ width:var(--ekran-oyun-w);height:var(--ekran-oyun-h);
+ transform:translate(-50%,-50%) rotate(90deg);
+}
+body.donuk.ters #yataySar{
+ --oyun-top:env(safe-area-inset-left,0px);--oyun-sag:env(safe-area-inset-top,0px);
+ --oyun-alt:env(safe-area-inset-right,0px);--oyun-sol:env(safe-area-inset-bottom,0px);
+ transform:translate(-50%,-50%) rotate(-90deg);
+}
+/* Keep interactive elements clear of notches and the home indicator. */
+#ustSol{top:calc(var(--oyun-top) + calc(1.4 * var(--oyun-vmin)));left:calc(var(--oyun-sol) + calc(1.4 * var(--oyun-vmin)));}
+#ustSag{top:calc(var(--oyun-top) + calc(1.4 * var(--oyun-vmin)));right:calc(var(--oyun-sag) + calc(1.4 * var(--oyun-vmin)));}
+#routeTag{bottom:calc(var(--oyun-alt) + 2%);left:calc(var(--oyun-sol) + 2%);}
+#eventHint{top:calc(var(--oyun-top) + 2%);}
+#nefesGeri{left:calc(var(--oyun-sol) + calc(2.6 * var(--oyun-vmin)));top:calc(var(--oyun-top) + calc(2 * var(--oyun-vmin)));}
+#nefesBaslikYazi{top:calc(var(--oyun-top) + calc(3 * var(--oyun-vmin)));}
+#nefesIpucu{bottom:calc(var(--oyun-alt) + calc(7 * var(--oyun-vmin)));width:min(calc(88 * var(--oyun-vw)),680px);}
+#nearBank{background-size:calc(75 * var(--oyun-vw)) 100%;}
+#baslaGorsel{width:min(calc(82 * var(--oyun-vw)),calc(86 * var(--oyun-vh)),640px);}
+#girisKutu{padding:0;}
+.intro{
+ top:var(--oyun-top);bottom:var(--oyun-alt);height:auto;
+ left:max(5%,calc(var(--oyun-sol) + 8px));
+}
+.publisher-logo{
+ top:calc(var(--oyun-top) + calc(3 * var(--oyun-vmin)));
+ right:calc(var(--oyun-sag) + calc(3 * var(--oyun-vmin)));
+}
+#sonKat{padding:var(--oyun-top) var(--oyun-sag) var(--oyun-alt) var(--oyun-sol);}
+#sonKat .kart{max-height:none;}
+/* The help is a native modal: it remains readable even in portrait webviews. */
+:is(#instructions,#about-dialog){
+ width:min(70vw,540px,calc(var(--ekran-w) - 32px));
+ max-height:calc(var(--ekran-h) - 28px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+ inset:auto;top:calc(var(--ekran-y) + (var(--ekran-h) + env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))/2);
+ left:calc(var(--ekran-x) + var(--ekran-w)/2);transform:translate(-50%,-50%);
+ margin:0;overflow:auto;overscroll-behavior:contain;touch-action:pan-y;
+}
+body.donuk :is(#instructions,#about-dialog){width:min(88vw,540px,calc(var(--ekran-w) - 24px));}
+
+body.darYukseklik .intro{gap:calc(.55 * var(--oyun-vh));}
+
+body.darYukseklik .intro h1{font-size:clamp(29px,calc(12 * var(--oyun-vh)),54px);margin:calc(1.5 * var(--oyun-vh)) 0;}
+
+body.darYukseklik .collection{font-size:clamp(9px,calc(2.5 * var(--oyun-vh)),13px);padding:.35em .8em;}
+
+body.darYukseklik .intro #play,body.darYukseklik .intro #guide{
+  height:clamp(38px,calc(10 * var(--oyun-vh)),50px);width:min(100%,clamp(106px,calc(34 * var(--oyun-vh)),166px));font-size:clamp(14px,calc(5 * var(--oyun-vh)),22px);
+ }
+
+body.darYukseklik .intro small{font-size:clamp(10px,calc(3 * var(--oyun-vh)),14px);}
+
+body.darYukseklik .publisher-logo{width:clamp(68px,calc(24 * var(--oyun-vh)),108px);}
+
+body.darYukseklik #eventHint{max-width:42%;font-size:clamp(12px,calc(3 * var(--oyun-vh)),16px);}
+
+body.darYukseklik #sonKat .kart{gap:clamp(2px,calc(1.1 * var(--oyun-vh)),5px);padding:calc(1.5 * var(--oyun-vh)) calc(4 * var(--oyun-vmin));width:clamp(172px,calc(72 * var(--oyun-vmin)),336px);}
+
+body.darYukseklik #sonKat #tekrarDugme,body.darYukseklik #sonKat #menu{
+  height:clamp(33px,calc(9.8 * var(--oyun-vh)),48px);width:min(100%,clamp(115px,calc(36 * var(--oyun-vh)),184px));font-size:clamp(15px,calc(4 * var(--oyun-vh)),23px);
+ }
