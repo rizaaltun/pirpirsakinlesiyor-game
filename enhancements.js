@@ -24,7 +24,8 @@
   previous=next;
  }).observe(field);
  /* Original instrumental loop: marimba melody, warm bass and soft percussion. */
- let bus=null,next=0,step=0;
+ let bus=null,next=0,step=0,paused=false;
+ const notes=new Set();
  const tune=[72,0,76,79,81,79,76,0,74,0,77,81,79,77,74,0,76,79,84,0,83,79,76,0,74,77,81,79,76,74,72,0];
  const roots=[48,53,45,55];
  const hz=n=>440*Math.pow(2,(n-69)/12);
@@ -32,10 +33,10 @@
   const c=Ses.ctx,o=c.createOscillator(),g=c.createGain();
   o.type=type;o.frequency.value=hz(n);g.gain.setValueAtTime(0,t);
   g.gain.linearRampToValueAtTime(level,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+d);
-  o.connect(g);g.connect(bus);o.start(t);o.stop(t+d+.02);
+  o.connect(g);g.connect(bus);notes.add(o);o.addEventListener("ended",()=>notes.delete(o),{once:true});o.start(t);o.stop(t+d+.02);
  }
  function tick(){
-  if(!Ses.ctx)return;
+  if(!Ses.ctx||paused)return;
   const c=Ses.ctx;
   if(!bus){bus=c.createGain();bus.gain.value=0;bus.connect(c.destination);}
   const active=O.girisYapildi&&!O.bitis&&!document.hidden&&!ekran.bekliyor&&!O.duraklat;
@@ -50,6 +51,16 @@
    next+=60/112/2;step++;
   }
  }
+ document.addEventListener("pirpir:play-audio",e=>{
+  paused=e.detail==="pause";
+  if(paused||e.detail==="reset"){
+   if(bus){bus.gain.cancelScheduledValues(Ses.ctx.currentTime);bus.gain.value=0;}
+   for(const note of notes){try{note.stop();}catch{}}
+   notes.clear();next=0;
+   if(e.detail==="reset")step=0;
+  }
+  if(!paused)tick();
+ });
  setInterval(tick,50);
  document.getElementById('sesDugme').addEventListener('click',tick);
  document.addEventListener('visibilitychange',tick);

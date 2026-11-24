@@ -418,7 +418,8 @@ body.giriste #dunya{visibility:hidden;}
   *,*::before,*::after{animation-duration:.01s !important;animation-iteration-count:1 !important;transition-duration:.01s !important;}
 }
 </style>
-<link rel="stylesheet" href="river.css"><link rel="stylesheet" href="turtle.css"><link rel="stylesheet" href="mobile.css?v=5"><link rel="stylesheet" href="intro.css?v=5"><link rel="stylesheet" href="intro-dive.css?v=5"><script src="intro-dive.js?v=2"></script><script src="play-viewport.js?v=1"></script><link rel="stylesheet" href="pirpir-i18n.css?v=2"><script src="pirpir-i18n.js?v=2"></script></head>
+<link rel="stylesheet" href="river.css"><link rel="stylesheet" href="turtle.css"><link rel="stylesheet" href="mobile.css?v=5"><link rel="stylesheet" href="intro.css?v=6"><link rel="stylesheet" href="intro-dive.css?v=5"><script src="intro-dive.js?v=2"></script><script src="play-viewport.js?v=1"></script><link rel="stylesheet" href="pirpir-i18n.css?v=2"><script src="pirpir-i18n.js?v=3"></script>
+<link rel="stylesheet" href="play-pause.css?v=1"><script src="play-pause.js?v=1"></script></head>
 <body class="giriste">
 <div id="oyunPencereOlcer" aria-hidden="true"></div>
 
@@ -485,6 +486,7 @@ const AYAR = {
     </div>
     <button id="tamDugme" aria-label="Tam ekran">⛶</button>
     <button id="sesDugme" aria-label="Ses">🔊</button>
+    <button type="button" id="pause-toggle" aria-label="Duraklat" aria-haspopup="dialog" aria-controls="pause-overlay" aria-expanded="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="3" width="6" height="18" rx="1.5"/><rect x="14" y="3" width="6" height="18" rx="1.5"/></svg></button>
   </div>
   <!-- gizli: yol ilerleme JS'i hâlâ kullanıyor olabilir; görünmez tutucu -->
   <div id="yolKap" style="display:none"><div id="yolDolgu"></div><img id="yolPirpir" src="assets/2323b48c9013.webp" alt=""><span id="yolHedef">🐠💛</span></div>
@@ -558,10 +560,6 @@ const AYAR = {
     <div class="about-copy">
       <h2 id="about-heading" tabindex="-1" autofocus>Maceramız bu kitapta!</h2>
       <p id="book-title" lang="tr">Pırpır Sakinleşiyor</p>
-      <section class="about-blurb" aria-labelledby="about-blurb-heading">
-        <h3 id="about-blurb-heading">Arka kapaktan kısa özet</h3>
-        <p id="about-blurb-copy">Pırpır çabucak öfkelenen küçük bir pirana. Onun hikâyesi, öfkeyi tanımayı ve sakinleşmeyi anlatıyor. Paylaşmanın, sabrın ve emek vermenin değerini; birbirimizi anlamanın da nasıl iyi geldiğini gösteriyor.</p>
-      </section>
       <dl class="about-credits">
         <div><dt id="about-writer">Yazan ve resimleyen</dt><dd lang="tr">Çağrı Odabaşı</dd></div>
         <div><dt id="about-maker">Oyunlaştıran</dt><dd lang="tr">Rıza Altun</dd></div>
@@ -609,6 +607,13 @@ const AYAR = {
   </div>
   <button id="nefesGeri" aria-label="Geri dön">↩️</button>
 </div>
+<div id="pause-overlay" role="dialog" aria-modal="true" aria-labelledby="pause-heading" hidden>
+  <div class="pause-card">
+    <h2 id="pause-heading">Oyun duraklatıldı</h2>
+    <button id="pause-resume" type="button">Devam et</button>
+    <button id="pause-home" type="button">Ana menü</button>
+  </div>
+</div>
 </div><!-- yataySar -->
 
 <script>
@@ -628,6 +633,7 @@ const ekran = { width:0, height:0, left:0, top:0, bekliyor:false, donuk:false, a
 const pencereOlcer=$("#oyunPencereOlcer");
 const dinamikPencere=window.CSS?.supports("height:100dvh");
 let iaDonus = 0, ekranRaf = 0;
+let pauseControls;
 function ekraniOlc(){
   const root=document.documentElement,body=document.body;
   const next=PirpirViewport.measure({
@@ -649,6 +655,7 @@ function ekraniOlc(){
   body.classList.toggle("darYukseklik",(donuk?w:h)<=450);
   body.classList.toggle("kisaGiris",gameHeight<=344);
   $("#yataySar").inert = bekliyor;
+  pauseControls?.sync();
   if(bekliyor){
     const language = $("#pirpir-language");
     if(language)language.open=false;
@@ -676,7 +683,20 @@ window.visualViewport?.addEventListener("scroll",ekraniPlanla);
 
 /* ================= SES MOTORU ================= */
 const Ses = {
-  ctx:null, ana:null, acikMi:true,
+  ctx:null, ana:null, acikMi:true, oyunSessiz:false, sources:new Set(),
+  izle(source){
+    this.sources.add(source);
+    source.addEventListener("ended",()=>this.sources.delete(source),{once:true});
+  },
+  temizle(){
+    for(const source of this.sources){try{source.stop();}catch{}}
+    this.sources.clear();
+  },
+  oyunDurdur(durdu){
+    this.oyunSessiz=durdu;
+    if(this.ana) this.ana.gain.value=durdu?0:.5;
+    if(durdu)this.temizle();
+  },
   hazirla(){
     if(this.ctx){ if(this.ctx.state==="suspended") this.ctx.resume(); return; }
     const C = window.AudioContext||window.webkitAudioContext;
@@ -687,7 +707,7 @@ const Ses = {
     this.ana.connect(this.ctx.destination);
   },
   nota(frek, sure=.25, tip="sine", kaz=.2, gec=0){
-    if(!this.ctx || !this.acikMi) return;
+    if(!this.ctx || !this.acikMi || this.oyunSessiz) return;
     const t = this.ctx.currentTime + gec;
     const o = this.ctx.createOscillator(), g = this.ctx.createGain();
     o.type = tip; o.frequency.setValueAtTime(frek,t);
@@ -695,10 +715,10 @@ const Ses = {
     g.gain.linearRampToValueAtTime(kaz,t+.02);
     g.gain.exponentialRampToValueAtTime(.0001,t+sure);
     o.connect(g); g.connect(this.ana);
-    o.start(t); o.stop(t+sure+.05);
+    this.izle(o);o.start(t); o.stop(t+sure+.05);
   },
   gurultu(sure=.1, kaz=.16, frek=900){
-    if(!this.ctx || !this.acikMi) return;
+    if(!this.ctx || !this.acikMi || this.oyunSessiz) return;
     const t = this.ctx.currentTime;
     const buf = this.ctx.createBuffer(1, this.ctx.sampleRate*sure, this.ctx.sampleRate);
     const d = buf.getChannelData(0);
@@ -706,7 +726,7 @@ const Ses = {
     const src = this.ctx.createBufferSource(); src.buffer = buf;
     const f = this.ctx.createBiquadFilter(); f.type="bandpass"; f.frequency.value=frek;
     const g = this.ctx.createGain(); g.gain.value=kaz;
-    src.connect(f); f.connect(g); g.connect(this.ana); src.start(t);
+    src.connect(f); f.connect(g); g.connect(this.ana); this.izle(src);src.start(t);
   },
   MERDIVEN:[523,587,659,784,880,1047,1175,1319],
   topla(kombo){
@@ -747,6 +767,7 @@ const O = {
   ekran:"oyun",            // oyun | nefes
 };
 const objeler = [];
+const turSaati=PirpirPause.clock();
 
 /* ================= SPRITE ================= */
 const spriteler = [...document.querySelectorAll(".pSprite")];
@@ -875,7 +896,7 @@ function objeTopla(o, ms=460){
   if(i>=0) objeler.splice(i,1);
   const el = o.el;
   el.classList.add("toplandi");
-  setTimeout(()=>el.remove(), ms);
+  turSaati.after(()=>el.remove(), ms);
 }
 function hepsiniTemizle(parlat=false){
   objeler.slice().forEach(o=>{
@@ -891,7 +912,7 @@ function ucanYazi(x,y,metin,altin=false){
   d.textContent = metin;
   d.style.left = x+"px"; d.style.top = y+"px";
   $("#sahne").appendChild(d);
-  setTimeout(()=>d.remove(),1000);
+  turSaati.after(()=>d.remove(),1000);
 }
 function parcala(x,y,semboller,adet=6,kap=null){
   for(let i=0;i<adet;i++){
@@ -904,7 +925,7 @@ function parcala(x,y,semboller,adet=6,kap=null){
     p.style.setProperty("--dy", (Math.sin(a)*m-6)+"vmin");
     p.style.setProperty("--dr", (Math.random()*180-90)+"deg");
     (kap||$("#sahne")).appendChild(p);
-    setTimeout(()=>p.remove(),1200);
+    if(kap)setTimeout(()=>p.remove(),1200);else turSaati.after(()=>p.remove(),1200);
   }
 }
 function komboGoster(){
@@ -956,9 +977,9 @@ function kivilcimCarp(o){
   const sahne = $("#sahne"), p = $("#pirpir");
   sahne.classList.remove("sars"); void sahne.offsetWidth; sahne.classList.add("sars");
   p.classList.remove("carp"); void p.offsetWidth; p.classList.add("carp");
-  p.classList.add("yanip"); setTimeout(()=>p.classList.remove("yanip"),1100);
+  p.classList.add("yanip"); turSaati.after(()=>p.classList.remove("yanip"),1100);
   $("#carpFlas").style.opacity = 1;
-  setTimeout(()=>$("#carpFlas").style.opacity = 0, 180);
+  turSaati.after(()=>$("#carpFlas").style.opacity = 0, 180);
   if(O.can<=0) kayip();
 }
 function kofteTopla(o){
@@ -994,7 +1015,7 @@ function altinTopla(o){
   ucanYazi(o.x,o.y-o.r,tr("breath"),true);
   const kivilcimlar = objeler.filter(b=>b.tip==="kivilcim");
   kivilcimlar.forEach((b,i)=>{
-    setTimeout(()=>{
+    turSaati.after(()=>{
       if(!objeler.includes(b)) return;
       b.tip = "balon";
       b.el.className = "obje balon";
@@ -1003,7 +1024,7 @@ function altinTopla(o){
       parcala(b.x,b.y,["✨"],3);
     }, 200+i*140);
   });
-  setTimeout(()=>{
+  turSaati.after(()=>{
     O.zamanOlcek = 1;
     $("#nefesFlas").style.opacity = 0;
     $("#nefesBuyuk").classList.remove("gor");
@@ -1011,7 +1032,23 @@ function altinTopla(o){
 }
 
 /* ================= TUR AKIŞI ================= */
+function turIzleriniTemizle(){
+  turSaati.reset();
+  Ses.temizle();
+  const scene=$("#sahne");
+  for(const name of ["#sahne","#dunya"])for(const anim of $(name).getAnimations?.({subtree:true})??[]){
+    if(!anim.animationName)anim.cancel();
+  }
+  scene.querySelectorAll(".ucanYazi,.parca,.obje.toplandi").forEach(el=>el.remove());
+  scene.classList.remove("sars");
+  $("#pirpir").classList.remove("yanip","carp","ucuyor");
+  $("#ipucu").classList.remove("patla");
+  $("#carpFlas").style.opacity=0;
+  $("#nefesFlas").style.opacity=0;
+  $("#nefesBuyuk").classList.remove("gor");
+}
 function turBaslat(beklet=false){
+  turIzleriniTemizle();
   ekraniOlc();                 // ekran boyutunu tazele (tekrar oynarken boş bant olmasın)
   hepsiniTemizle();
   O.calisiyor = !beklet; O.duraklat = false; O.bitis = false;
@@ -1033,6 +1070,7 @@ function turBaslat(beklet=false){
     const p=$("#pirpir");O.py=$("#sahne").offsetHeight*.45;O.pyHazir=true;
     p.style.transform=`translateY(${-p.offsetWidth/2}px) rotate(0deg)`;
   }else baslaGorseliPatlat();
+  pauseControls.sync();
 }
 function baslaGorseliPatlat(){
   const ip = $("#ipucu");
@@ -1041,7 +1079,7 @@ function baslaGorseliPatlat(){
   const r = ARK($("#sahne"));
   parcala(r.width*.5, r.height*.42, ["⭐","✨","🫧","💫"], 9);
   if(Ses.pat) Ses.pat();
-  setTimeout(()=>{ ip.classList.remove("gor","patla"); }, 520);
+  turSaati.after(()=>{ ip.classList.remove("gor","patla"); }, 520);
 }
 function kayip(){
   O.kalkan=0;kalkanGuncelle();
@@ -1050,7 +1088,8 @@ function kayip(){
   Ses.kapiSes();
     // kaybetti → sertifika yok
   $("#sonKat").classList.remove("kazandi");      // kaybetti → yıldız yok
-  setTimeout(()=>{
+  pauseControls.sync();
+  turSaati.after(()=>{
     $("#sonBaslik").textContent = tr("diary");
     const yeniRekor = O.skor > O.rekor;
     if(yeniRekor){ O.rekor=O.skor; try{localStorage.setItem("pirpir-nehir-best",O.rekor)}catch{} }
@@ -1065,9 +1104,11 @@ function kayip(){
 /* ================= ANA DÖNGÜ ================= */
 function dongu(t){
   requestAnimationFrame(dongu);
-  let dt = Math.min((t - O.sonT)/1000, .05);
+  let dt = Math.max(0,Math.min((t - O.sonT)/1000,.05));
   O.sonT = t;
-  if(O.ekran!=="oyun" || O.duraklat || O.girisBekliyor || ekran.bekliyor){ O.basili=false; return; }
+  if(pauseControls.active() || ekran.bekliyor || document.hidden){O.basili=false;return;}
+  turSaati.tick(dt*1000);
+  if(O.ekran!=="oyun" || O.duraklat || O.girisBekliyor || !O.girisYapildi){ O.basili=false; return; }
   const s = ARK($("#sahne"));
   const p = $("#pirpir");
   const pBoy = p.offsetWidth;
@@ -1159,7 +1200,7 @@ function dongu(t){
 /* ================= GİRİŞ (basılı tut → yüksel) ================= */
 const sahne = $("#sahne");
 sahne.addEventListener("pointerdown", e=>{
-  if(e.target.closest("button") || !O.girisYapildi) return;
+  if(e.target.closest("button") || !O.girisYapildi || O.girisBekliyor || pauseControls.active() || ekran.bekliyor || O.duraklat || O.ekran!=="oyun") return;
   Ses.hazirla();
   if(!O.calisiyor && !O.bitis && !$("#sonKat").classList.contains("acik")){
     turBaslat();
@@ -1236,7 +1277,7 @@ const baslangicDalis = PirpirMenuDive.createDive({
   },
   enter(){
     O.girisBekliyor=false;O.girisYapildi=true;O.calisiyor=true;O.sonT=performance.now();
-    document.body.classList.remove("giris-dalis");ekraniOlcGecikmeli();
+    document.body.classList.remove("giris-dalis");pauseControls.sync();ekraniOlcGecikmeli();
   }
 });
 $("#play").onclick = ()=>{
@@ -1365,7 +1406,8 @@ function nefesKapisiAc(){
   $("#nefesFlas").style.opacity = 0;
   $("#nefesBuyuk").classList.remove("gor");
   Ses.kapiSes();
-  setTimeout(()=>nefesAc("kapi"), 450);
+  pauseControls.sync();
+  turSaati.after(()=>nefesAc("kapi"),450);
 }
 const nefesSahneEl = $("#nefesSahne");
 nefesSahneEl.addEventListener("pointerdown", e=>{
@@ -1385,20 +1427,22 @@ function nefesBirak(){
     if(NB.kip==="kapi"){
       // Pırpır sakinleşti → oyuna kaldığı yerden devam
       $("#nefesPirpir").src = spriteler[0].src;
-      setTimeout(()=>{
+      turSaati.after(()=>{
         nefesKapat();
         hepsiniTemizle();          // temiz bir başlangıç anı
         O.ofke = 0; ofkeyiCiz();
         O.kombo = 0; komboGoster();
         O.dokunulmaz = 1.5;
         O.duraklat = false;
+        pauseControls.sync();
       }, 1100);
     }
   } else if(r<R*PENCERE_ALT) Ses.blup();
   NB.r = 0; nefesGizle();
   // başarısız denemeden sonra ipucunu tekrar göster (rehberlik)
   if(!basarili && O.ekran==="nefes"){
-    setTimeout(()=>{ if(O.ekran==="nefes" && !NB.var) $("#nefesEl").classList.add("gor"); }, 1100);
+    const sonra=NB.kip==="kapi"?turSaati.after:setTimeout;
+    sonra(()=>{ if(O.ekran==="nefes" && !NB.var) $("#nefesEl").classList.add("gor"); }, 1100);
   }
 }
 ["pointerup","pointercancel","pointerleave"].forEach(ev=>nefesSahneEl.addEventListener(ev,nefesBirak));
@@ -1776,10 +1820,34 @@ PirpirI18n.mount({onChange(){
   $("#sonRekor").textContent=tr("record",{n:O.rekor});
 }});
 /* END INTRO INTERACTION */
-$("#menu").onclick=()=>{
- O.girisYapildi=false;O.bitis=false;bestLabel();$("#sonKat").classList.remove("acik");document.body.classList.add("giriste");
- const giris=$("#girisEkrani");giris.classList.add("acik");giris.hidden=false;
-};
+function anaMenuyeDon(){
+ O.girisYapildi=false;O.girisBekliyor=false;O.calisiyor=false;O.bitis=false;O.basili=false;O.duraklat=false;
+ O.zamanOlcek=1;O.kalkan=0;O.dokunulmaz=0;O.pyHazir=false;
+ kalkanGuncelle();kapDurdur();turIzleriniTemizle();hepsiniTemizle();resetEvents();
+ $("#eventHint").hidden=true;$("#ipucu").classList.remove("gor","patla");
+ document.body.classList.add("giriste");document.body.classList.remove("giris-dalis");
+ bestLabel();$("#sonKat").classList.remove("acik");
+ const giris=$("#girisEkrani");giris.hidden=false;giris.classList.add("acik");
+ emitAudioState("reset");
+}
+function emitAudioState(action){document.dispatchEvent(new CustomEvent("pirpir:play-audio",{detail:action}));}
+pauseControls=PirpirPause.controls({
+ button:$("#pause-toggle"),panel:$("#pause-overlay"),resume:$("#pause-resume"),home:$("#pause-home"),
+ background:[sahne,$("#dunya")],
+ canOpen:()=>O.girisYapildi&&O.calisiyor&&!O.bitis&&!O.girisBekliyor&&!O.duraklat&&O.ekran==="oyun",
+ blocked:()=>ekran.bekliyor||document.hidden,
+ change(durdu,toMenu){
+  O.basili=false;O.sonT=performance.now();
+  document.body.classList.toggle("oyun-durakladi",durdu);
+  Ses.oyunDurdur(durdu);
+  if(!durdu&&!toMenu)Ses.hazirla();
+  emitAudioState(durdu?"pause":"sync");
+ },
+ exit:anaMenuyeDon,focusHome:()=>$("#play").focus({preventScroll:true})
+});
+pauseControls.sync();
+document.addEventListener("visibilitychange",()=>pauseControls.sync());
+$("#menu").onclick=()=>{anaMenuyeDon();pauseControls.sync();$("#play").focus({preventScroll:true});};
 
 
 document.addEventListener("contextmenu", e=>e.preventDefault());
@@ -1899,6 +1967,6 @@ body:not(.donuk) #iaKontrol{display:none;}
 })();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "b1527b9895254beeacd3316ee9af33f2"}'></script><!-- End Cloudflare Web Analytics -->
-<script src="enhancements.js?v=4"></script>
+<script src="enhancements.js?v=5"></script>
 </body>
 </html>

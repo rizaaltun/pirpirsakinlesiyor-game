@@ -1,0 +1,27 @@
+#pause-toggle{
+  pointer-events:auto;display:grid;place-items:center;flex:none;
+  width:clamp(48px,9vmin,60px);height:clamp(48px,9vmin,60px);padding:0;
+  border:2px solid #e4fff5;border-radius:50%;color:#104b46;background:linear-gradient(#effff4,#a5e2d3);
+  box-shadow:0 3px 0 #27766d,0 5px 12px #0e413970;
+}
+#pause-toggle svg{display:block;width:22px;height:22px;fill:currentColor;}
+#pause-toggle[hidden],#pause-overlay[hidden]{display:none;}
+#pause-overlay{
+  position:absolute;inset:0;z-index:90;display:grid;place-items:center;
+  padding:calc(8px + var(--oyun-top)) calc(12px + var(--oyun-sag)) calc(8px + var(--oyun-alt)) calc(12px + var(--oyun-sol));
+  background:rgba(9,50,52,.68);touch-action:none;
+}
+.pause-card{
+  width:min(100%,330px);max-height:100%;overflow:auto;overscroll-behavior:contain;
+  display:grid;justify-items:stretch;gap:10px;padding:clamp(12px,4vmin,24px);
+  border:2px solid #e2ffec;border-radius:22px;text-align:center;color:#124f47;
+  background:radial-gradient(ellipse at top,#fffdf0,#d4f4df);box-shadow:0 5px 0 #308278,0 12px 36px #082f3766;
+}
+#pause-heading{font-size:clamp(20px,4.5vmin,30px);line-height:1.08;margin-bottom:3px;}
+.pause-card button{
+  min-height:48px;padding:6px 14px;border:2px solid #27756b;border-radius:15px;
+  background:#fff8e9;color:#174d45;font-size:clamp(16px,3.7vmin,21px);font-weight:750;touch-action:manipulation;
+}
+#pause-resume{background:#14665c;color:#fffdeb;}
+#pause-toggle:focus-visible,.pause-card button:focus-visible{outline:3px solid #ffbe46;outline-offset:3px;}
+body.oyun-durakladi :is(#dunya,#sahne, #dunya *,#sahne *){animation-play-state:paused!important;}

@@ -2,7 +2,7 @@
 #girisEkrani {
   --menu-corner-size:clamp(44px,calc(8.5 * var(--oyun-vh)),66px);
   --menu-edge:clamp(10px,calc(2.4 * var(--oyun-vh)),26px);
-  --menu-logo-size:clamp(74px,calc(13.4 * var(--oyun-vh)),142px);
+  --menu-logo-size:clamp(116px,calc(20 * var(--oyun-vh)),195px);
   --menu-logo-bottom:clamp(12px,calc(2.6 * var(--oyun-vh)),27px);
 }
 /* Printed-game title and original plaques, on the quieter left half of the illustration. */
@@ -193,6 +193,7 @@
   #girisEkrani .intro :is(#play,#guide):hover{transform:translateY(-2px) scale(1.025);filter:brightness(1.07) drop-shadow(0 .2em .23em #12484150);}
   #girisEkrani .intro :is(#play,#guide):hover:active{transform:translateY(2px) scale(.972);}
 }
+body.kisaGiris #girisEkrani{--menu-logo-size:clamp(112px,calc(36 * var(--oyun-vw)),126px);}
 body.kisaGiris #girisEkrani .intro{
   --giris-gap:clamp(3px,calc(1.6 * var(--oyun-vh)),5px);
   --giris-h1:clamp(29px,min(calc(14.2 * var(--oyun-vh)),calc(10.3 * var(--oyun-vw))),50px);
@@ -255,7 +256,7 @@ body.donuk #about-dialog {
   scrollbar-width:thin;
   grid-template-columns:minmax(0,.79fr) minmax(0,1.21fr);
   gap:clamp(10px,3vmin,25px);
-  align-items:start;
+  align-items:center;
 }
 .about-inside>img {
   display:block;width:100%;height:auto;
@@ -272,15 +273,6 @@ body.donuk #about-dialog {
   line-height:1.25;
 }
 #about-heading:focus{outline:none;}
-#about-dialog .about-blurb {margin:0 0 clamp(8px,1.8vmin,16px);}
-#about-blurb-heading{
-  margin:0 0 .28em;font:800 clamp(12px,2.8vmin,17px)/1.18 ui-rounded,system-ui,sans-serif;
-  color:#24655c;
-}
-#about-blurb-copy{
-  margin:0;max-width:58ch;font:500 clamp(12px,2.8vmin,17px)/1.48 ui-rounded,system-ui,sans-serif;
-  color:#264943;overflow-wrap:break-word;
-}
 #about-dialog .about-credits {
   padding:0 clamp(6px,1.1vmin,13px);margin:0;border-radius:.66em;
   background:#fff9e8bf;

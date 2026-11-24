@@ -29,14 +29,6 @@ const WORDS={
   gotIt:["Anladım","Got it","Entendido","Понятно","明白了"],
   about:["Kitap hakkında","About the book","Sobre el libro","О книге","关于这本书"],
   aboutHeading:["Maceramız bu kitapta!","Our adventure is in this book!","¡Nuestra aventura está en este libro!","Наше приключение — в этой книге!","我们的冒险就在这本书里！"],
-  backCoverHeading:["Arka kapaktan kısa özet","Back-cover summary","Resumen de la contraportada","Кратко по аннотации","封底简介"],
-  backCoverCopy:[
-    "Pırpır çabucak öfkelenen küçük bir pirana. Onun hikâyesi, öfkeyi tanımayı ve sakinleşmeyi anlatıyor. Paylaşmanın, sabrın ve emek vermenin değerini; birbirimizi anlamanın da nasıl iyi geldiğini gösteriyor.",
-    "Pırpır is a little piranha who is quick to get angry. His story is about recognising anger and learning to calm down. It also shows why sharing, being patient, making an effort and understanding one another matter.",
-    "Pırpır es una pequeña piraña que se enfada con facilidad. Su historia nos ayuda a reconocer el enfado y a calmarnos. También nos enseña por qué importa compartir, tener paciencia, esforzarse y comprender a los demás.",
-    "Пырпыр — маленькая пиранья, которая легко сердится. Его история помогает понять свой гнев и научиться успокаиваться. Она также показывает, как важны умение делиться, терпение, старание и понимание друг друга.",
-    "皮尔皮尔是一条很容易生气的小食人鱼。他的故事讲的是怎样认识愤怒、学会让自己平静下来，也让我们看到分享、耐心、努力和相互理解为什么重要。"
-  ],
   bookCover:["Pırpır Sakinleşiyor kitabının kapağı","Cover of Pırpır Sakinleşiyor","Portada de Pırpır Sakinleşiyor","Обложка книги «Pırpır Sakinleşiyor»","《Pırpır Sakinleşiyor》的封面"],
   author:["Yazan ve resimleyen","Written and illustrated by","Texto e ilustraciones","Автор и художник","文字与插画"],
   gamified:["Oyunlaştıran","Game adaptation by","Adaptación al juego","Адаптация в игру","游戏改编"],
@@ -69,6 +61,9 @@ const WORDS={
   newRecord:["Yeni rekor!","New record!","¡Nuevo récord!","Новый рекорд!","新纪录！"],
   replay:["Tekrar oyna","Play again","Jugar de nuevo","Играть снова","再玩一次"],
   menu:["Ana menü","Main menu","Menú principal","Главное меню","主菜单"],
+  pause:["Duraklat","Pause","Pausar","Пауза","暂停"],
+  paused:["Oyun duraklatıldı","Game paused","Juego en pausa","Игра на паузе","游戏已暂停"],
+  resume:["Devam et","Resume","Continuar","Продолжить","继续"],
   back:["Geri dön","Go back","Volver","Назад","返回"],
   angerGate:["Pırpır çok kızdı!","Pırpır is upset!","¡Pırpır se ha enfadado!","Пырпыр рассердился!","皮尔皮尔生气了！"],
   breathingCorner:["Nefes Köşesi","Breathing Corner","Rincón para respirar","Уголок дыхания","呼吸角"],
@@ -97,16 +92,17 @@ function t(key,params){const text=WORDS[key]?.[active]??WORDS[key]?.[0]??key;
  return params?text.replace(/\{(\w+)\}/g,(whole,name)=>Object.hasOwn(params,name)?(typeof params[name]==="number"?number(params[name]):String(params[name])):whole):text;}
 function locale(){return languages[active].code;}
 const visible={
+ "#pause-heading":"paused","#pause-resume":"resume","#pause-home":"menu",
  "#play":"play","#guide":"help","#instructions-heading":"helpTitle",
  "#instructions>p:nth-of-type(1)":"help1","#instructions>p:nth-of-type(2)":"help2","#instructions>p:nth-of-type(3)":"help3",
  "#closeGuide":"gotIt","#about-heading":"aboutHeading","#about-writer":"author","#about-maker":"gamified",
  "#about-publisher":"publisher","#about-close":"backRiver","#cevirUyari .yaz":"rotate",
- "#about-blurb-heading":"backCoverHeading","#about-blurb-copy":"backCoverCopy",
  "#ustSol .skorKutu small":"points","#nefesBuyuk":"breath","#sonKat .etiket":"points",
  "#tekrarDugme":"replay","#menu":"menu","#best .full-label":"best","#best .compact-label":"bestShort",
  "#girisBaslik .intro-name":"name","#girisBaslik .intro-subtitle":"subtitle"
 };
 const accessible={
+ "#pause-toggle":["aria-label","pause"],
  "#girisBaslik":["aria-label","title"],"#intro-title-touch":["aria-label","pop"],
  "#about-open":["aria-label","about"],"#about-dialog .about-inside img":["alt","bookCover"],
  "#ofkeSarj":["aria-label","anger"],"#friendMeter":["aria-label","friendMeter"],
